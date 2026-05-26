@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AI\" />
+    <Folder Include="Authentication\" />
+    <Folder Include="BackgroundJobs\" />
+    <Folder Include="FileStorage\" />
+    <Folder Include="Messaging\" />
+    <Folder Include="Payments\" />
+    <Folder Include="Signaling\" />
+  </ItemGroup>
+
+</Project>
