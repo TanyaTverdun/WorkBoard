@@ -15,4 +15,11 @@
     <ProjectReference Include="..\WorkBoard.Persistence\WorkBoard.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Hubs\" />
+    <Folder Include="Middlewares\" />
+  </ItemGroup>
+
 </Project>

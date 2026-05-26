@@ -10,4 +10,10 @@
     <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Context\" />
+    <Folder Include="Repositories\" />
+    <Folder Include="UnitOfWork\" />
+  </ItemGroup>
+
 </Project>
