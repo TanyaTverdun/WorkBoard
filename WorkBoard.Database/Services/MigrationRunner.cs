@@ -4,6 +4,10 @@ using WorkBoard.Database.Factories;
 
 namespace WorkBoard.Database.Services;
 
+/// <summary>
+/// Orchestrates the database migration process by loading configuration,
+/// validating the connection string, and executing the database initializer.
+/// </summary>
 public class MigrationRunner
 {
     private readonly ILogger<MigrationRunner> _logger;
@@ -15,6 +19,13 @@ public class MigrationRunner
         this._logger = logger;
     }
 
+    /// <summary>
+    /// Runs the database migration process.
+    /// </summary>
+    /// <returns>
+    /// Returns <c>0</c> if the migration completed successfully; 
+    /// otherwise, returns <c>-1</c> if a configuration error occurs.
+    /// </returns>
     public int Run()
     {
         this._logger.LogInformation("Starting database migration");
@@ -27,8 +38,9 @@ public class MigrationRunner
         if (string.IsNullOrEmpty(connectionString))
         {
             this._logger.LogError(
-                $"Connection string '{ConnectionStringKey}' " +
-                $"is missing in {AppSettingsFileName}.");
+                "Connection string '{ConnectionStringKey}' " +
+                "is missing in {AppSettingsFileName}.",
+                ConnectionStringKey, AppSettingsFileName);
             return -1;
         }
 
