@@ -1,12 +1,12 @@
 ﻿namespace WorkBoard.Application.Common.Interfaces;
 
 /// <summary>
-/// Maintance database tranzactions
+/// Maintance database transactions
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
     /// <summary>
-    /// Commit all changes made in current tranzaction to database
+    /// Commit all changes made in current transaction to database
     /// </summary>
     /// <param name="cancellationToken">
     /// To cancel operation
