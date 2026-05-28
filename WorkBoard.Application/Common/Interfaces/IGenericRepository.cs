@@ -13,21 +13,29 @@ public interface IGenericRepository<T>
     /// <param name="id">
     /// The unique identifier of the entity
     /// </param>
+    /// <param name="cancellationToken">
+    /// To cancel operation
+    /// </param>
     /// <returns>
     /// A task that represents the asynchronous operation. 
     /// The task result contains the entity if found; 
     /// otherwise, null
     /// </returns>
-    Task<T?> GetByIdAsync(Guid id);
+    Task<T?> GetByIdAsync(Guid id,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get all entities of type <typeparamref name="T"> asynchronously
     /// </summary>
+    /// <param name="cancellationToken">
+    /// To cancel operation
+    /// </param>
     /// <returns>
     /// A Task that represents the asynchronous operation.
     /// The task result contains a read-only list of all entities
     /// </returns>
-    Task<IReadOnlyList<T>> GetAllAsync();
+    Task<IReadOnlyList<T>> GetAllAsync(
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Add new entity of type <typeparanref name="T"> asynchronously
@@ -35,10 +43,15 @@ public interface IGenericRepository<T>
     /// <param name="entity">
     /// The entity to be added
     /// </param>
+    /// <param name="cancellationToken">
+    /// To cancel operation
+    /// </param>
     /// <returns>
     /// A Task that represents the asynchronous operation
     /// </returns>
-    Task AddAsync(T entity);
+    Task AddAsync(
+        T entity, 
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Undate an existing entity in database
@@ -46,10 +59,15 @@ public interface IGenericRepository<T>
     /// <param name="entity">
     /// The entity to be updated
     /// </param>
+    /// <param name="cancellationToken">
+    /// To cancel operation
+    /// </param>
     /// <returns>
     /// A Task that represent the asynchronous operation
     /// </returns>
-    Task UpdateAsync(T entity);
+    Task UpdateAsync(
+        T entity, 
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Delete entity by id in database
@@ -57,8 +75,13 @@ public interface IGenericRepository<T>
     /// <param name="id">
     /// The unique indetifaer of the entity
     /// </param>
+    /// <param name="cancellationToken">
+    /// To cancel operation
+    /// </param>
     /// <returns>
     /// A Task that represent asynchronous operation
     /// </returns>
-    Task DeleteAsync(Guid id);
+    Task DeleteAsync(
+        Guid id, 
+        CancellationToken cancellationToken = default);
 }
