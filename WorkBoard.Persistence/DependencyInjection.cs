@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Persistence.Data;
 using WorkBoard.Persistence.Repositories;
 
 namespace WorkBoard.Persistence;
@@ -23,7 +24,7 @@ public static class DependencyInjection
     public static IServiceCollection AddPersistance(
         this IServiceCollection services)
     {
-        services.AddScoped<IDbConnectionFactory, IDbConnectionFactory>();
+        services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
         return services;
