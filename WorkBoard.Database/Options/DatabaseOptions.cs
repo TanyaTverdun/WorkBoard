@@ -6,8 +6,13 @@
     public class DatabaseOptions
     {
         /// <summary>
+        /// The default section name in the configuration
+        /// </summary>
+        public const string SectionName = "Database";
+
+        /// <summary>
         /// Gets or sets the database connection string
         /// </summary>
-        public string ConnectionString { get; set; } = string.Empty;
+        public required string ConnectionString { get; set; } = string.Empty;
     }
 }

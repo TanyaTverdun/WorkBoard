@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.Configure<DatabaseOptions>(
-    builder.Configuration.GetSection("Database"));
+    builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
 builder.Services.AddTransient<DatabaseInitializer>();
 
