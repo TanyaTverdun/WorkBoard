@@ -47,9 +47,9 @@ public interface IGenericRepository<T>
     /// To cancel operation
     /// </param>
     /// <returns>
-    /// A Task that represent asynchronous operation
+    /// True if operation is successed otherwise false
     /// </returns>
-    Task DeleteAsync(
+    Task<bool> DeleteAsync(
         Guid id, 
         CancellationToken cancellationToken = default);
 }
