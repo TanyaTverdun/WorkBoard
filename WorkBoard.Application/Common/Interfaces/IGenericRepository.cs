@@ -1,7 +1,7 @@
 ﻿namespace WorkBoard.Application.Common.Interfaces;
 
 /// <summary>
-/// Defines basic CRUD operations for generic repositories
+/// Defines basic basic read and delete operations for generic repositories
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IGenericRepository<T> 
