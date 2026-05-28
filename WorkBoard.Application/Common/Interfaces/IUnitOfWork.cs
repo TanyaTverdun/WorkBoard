@@ -6,6 +6,11 @@
 public interface IUnitOfWork : IDisposable
 {
     /// <summary>
+    /// Begins a new database transaction
+    /// </summary>
+    public void BeginTransaction();
+
+    /// <summary>
     /// Commit all changes made in current transaction to database
     /// </summary>
     /// <param name="cancellationToken">

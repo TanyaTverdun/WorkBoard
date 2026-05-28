@@ -2,7 +2,7 @@
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Persistence.Data;
 using WorkBoard.Persistence.Repositories;
-
+using UnitOfWorkClass = WorkBoard.Persistence.UnitOfWork.UnitOfWork;
 namespace WorkBoard.Persistence;
 
 /// <summary>
@@ -26,6 +26,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        services.AddScoped<IUnitOfWork, UnitOfWorkClass>();
 
         return services;
     }
