@@ -38,38 +38,6 @@ public interface IGenericRepository<T>
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Add new entity of type <typeparanref name="T"> asynchronously
-    /// </summary>
-    /// <param name="entity">
-    /// The entity to be added
-    /// </param>
-    /// <param name="cancellationToken">
-    /// To cancel operation
-    /// </param>
-    /// <returns>
-    /// A Task that represents the asynchronous operation
-    /// </returns>
-    Task AddAsync(
-        T entity, 
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Undate an existing entity in database
-    /// </summary>
-    /// <param name="entity">
-    /// The entity to be updated
-    /// </param>
-    /// <param name="cancellationToken">
-    /// To cancel operation
-    /// </param>
-    /// <returns>
-    /// A Task that represent the asynchronous operation
-    /// </returns>
-    Task UpdateAsync(
-        T entity, 
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Delete entity by id in database
     /// </summary>
     /// <param name="id">
