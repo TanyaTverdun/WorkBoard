@@ -1,4 +1,5 @@
 using WorkBoard.Database;
+using WorkBoard.Database.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,20 +9,10 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddTransient<DatabaseInitializer>(provider =>
-{
-    var connectionString = builder.Configuration
-        .GetConnectionString(ConnectionStringNames.DefaultConnection);
+builder.Services.Configure<DatabaseOptions>(
+    builder.Configuration.GetSection("Database"));
 
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new InvalidOperationException(
-            $"Connection string '{ConnectionStringNames.DefaultConnection}' " +
-            $"is missing from configuration.");
-    }
-
-    return new DatabaseInitializer(connectionString);
-});
+builder.Services.AddTransient<DatabaseInitializer>();
 
 var app = builder.Build();
 

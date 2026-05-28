@@ -1,5 +1,7 @@
 ﻿using DbUp;
+using Microsoft.Extensions.Options;
 using WorkBoard.Database.Exceptions;
+using WorkBoard.Database.Options;
 
 namespace WorkBoard.Database;
 
@@ -18,9 +20,9 @@ public class DatabaseInitializer
     /// The connection string used to 
     /// connect to the SQL Server instance.
     /// </param>
-    public DatabaseInitializer(string connectionString)
+    public DatabaseInitializer(IOptions<DatabaseOptions> databaseOptions)
     {
-        _connectionString = connectionString;
+        _connectionString = databaseOptions.Value.ConnectionString;
     }
 
     /// <summary>
