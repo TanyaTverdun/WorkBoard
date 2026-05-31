@@ -1,4 +1,6 @@
-﻿namespace WorkBoard.Application.Common.Interfaces;
+﻿using System.Data;
+
+namespace WorkBoard.Application.Common.Interfaces;
 
 /// <summary>
 /// Maintance database transactions
@@ -20,4 +22,9 @@ public interface IUnitOfWork : IDisposable
     /// A Task that represents the asynchronous operation
     /// </returns>
     Task CommitAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the current active database transaction, if one has been started
+    /// </summary>
+    IDbTransaction? CurrentTransaction { get; }
 }

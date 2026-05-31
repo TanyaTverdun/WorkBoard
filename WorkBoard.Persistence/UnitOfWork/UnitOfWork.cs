@@ -15,6 +15,9 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <inheritdoc />
+    public IDbTransaction? CurrentTransaction => _transaction;
+
+    /// <inheritdoc />
     public void BeginTransaction()
     {
         if (_transaction == null)
