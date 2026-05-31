@@ -1,5 +1,6 @@
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
+using WorkBoard.WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.Configure<DatabaseOptions>(
 builder.Services.AddTransient<DatabaseInitializer>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
