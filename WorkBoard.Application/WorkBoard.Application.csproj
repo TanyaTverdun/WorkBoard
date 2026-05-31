@@ -13,9 +13,15 @@
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
     <Folder Include="Common\Dtos\" />
-    <Folder Include="Common\Interfaces\" />
     <Folder Include="Features\Boards\Commands\CreateBoard\" />
     <Folder Include="Features\Boards\Queries\GetBoardDetails\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
   </ItemGroup>
 
 </Project>
