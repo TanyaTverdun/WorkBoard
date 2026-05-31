@@ -28,7 +28,7 @@ public class RegisterUserCommandHandler
     /// <param name="mapper">
     /// The mapper to convert DTOs to entities
     /// </param>
-    public UrbanRegisterUserCommandHandler(
+    public RegisterUserCommandHandler(
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper)
