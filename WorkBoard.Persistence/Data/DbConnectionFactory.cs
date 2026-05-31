@@ -25,7 +25,7 @@ public class DbConnectionFactory : IDbConnectionFactory, IDisposable
     /// <exception cref="ArgumentException">
     /// thow exception when <param name="options"> is null or white space
     /// </exception>
-    public IDbConnectionFactory(IOptions<DatabaseOptions> options)
+    public DbConnectionFactory(IOptions<DatabaseOptions> options)
     {
         if (options is null ||
             string.IsNullOrWhiteSpace(options.Value.ConnectionString))
