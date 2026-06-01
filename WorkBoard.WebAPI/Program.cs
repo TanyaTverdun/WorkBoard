@@ -1,5 +1,8 @@
+using Microsoft.Identity.Web;
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
+using WorkBoard.WebAPI.Constants;
+using WorkBoard.WebAPI.Extensions;
 using WorkBoard.WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +17,12 @@ builder.Services.Configure<DatabaseOptions>(
     builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
 builder.Services.AddTransient<DatabaseInitializer>();
+
+builder.Services.AddMicrosoftIdentityWebApiAuthentication(
+    builder.Configuration,
+    ConfigurationSections.AzureAd);
+
+builder.Services.AddSwaggerWithJwtAuth();
 
 var app = builder.Build();
 
@@ -34,6 +43,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

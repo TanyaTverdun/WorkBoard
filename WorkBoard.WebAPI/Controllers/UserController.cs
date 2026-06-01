@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Features.User.Commands.RegisterUser;
 
@@ -38,6 +39,7 @@ public class UserController : ControllerBase
     /// The unique identifier of the user
     /// </returns>
     [HttpPost("register")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
