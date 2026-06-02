@@ -1,87 +1,75 @@
 ﻿using Dapper;
 using System.Data;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Domain.Common;
 
 namespace WorkBoard.Persistence.Repositories;
 
-/// <summary>
-/// Implement basic read and delete repository operations
-/// </summary>
-/// <typeparam name="T">
-/// The type of the entity, which must be a class
-/// </typeparam>
-public class GenericRepository<T> : IGenericRepository<T> 
-    where T : class
+public class GenericRepository<TEntity, TId> : IGenericRepository<TEntity, TId>
+    where TEntity : BaseEntity<TId>
 {
-    /// <summary>
-    /// The database connection factory used to open connections
-    /// </summary>
-    protected readonly IDbConnectionFactory _connectionFactory;
+    protected readonly IDbConnection _connection;
+    protected readonly IDbTransaction? _transaction;
 
-    /// <summary>
-    /// The name of the database table
-    /// </summary>
-    protected readonly string _tableName;
-
-    /// <summary>
-    /// nitializes a new instance of the <see cref="GenericRepository{T}"/> class
-    /// </summary>
-    /// <param name="connectionFactory"></param>
-    public GenericRepository (IDbConnectionFactory connectionFactory)
+    public GenericRepository(IDbConnectionFactory connectionFactory)
     {
-        _connectionFactory = connectionFactory;
-        _tableName = $"{typeof(T).Name}s";
+        _connection = connectionFactory.GetOrCreateConnection();
+        _transaction = null;
+        SimpleCRUD.SetDialect(SimpleCRUD.Dialect.SQLServer);
     }
 
-    /// <inheritdoc />
-    public async Task<T?> GetByIdAsync(
-        Guid id, 
-        CancellationToken cancellationToken = default)
+    protected GenericRepository(
+        IDbConnection connection, 
+        IDbTransaction transaction)
     {
-        IDbConnection connection = _connectionFactory.GetOrCreateConnection();
-        string sql = $"SELECT * FROM {_tableName} WHERE Id = @Id";
-
-        var command = new CommandDefinition(
-            sql,
-            parameters: new { Id = id },
-            cancellationToken: cancellationToken);
-
-        return await connection.QueryFirstOrDefaultAsync<T>(command);
+        _connection = connection;
+        _transaction = transaction;
+        SimpleCRUD.SetDialect(SimpleCRUD.Dialect.SQLServer);
     }
 
-    /// <inheritdoc />
-    public async Task<IReadOnlyList<T>> GetAllAsync(
+    public async Task<TEntity?> GetByIdAsync(
+        TId id, 
         CancellationToken cancellationToken = default)
     {
-        IDbConnection connection = _connectionFactory.GetOrCreateConnection();
-        string sql = $"SELECT * FROM {_tableName}";
+        return await _connection.GetAsync<TEntity>(
+            id, 
+            transaction: _transaction);
+    }
 
-        var command = new CommandDefinition(
-            sql,
-            cancellationToken: cancellationToken);
+    public async Task<IReadOnlyList<TEntity>> GetAllAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _connection.GetListAsync<TEntity>(
+            null, 
+            transaction: _transaction);
 
-        var result = await connection.QueryAsync<T>(command);
         return result.ToList().AsReadOnly();
     }
 
-    /// <inheritdoc />
-    public async Task<bool> DeleteAsync(
-        Guid id, 
+    public async Task<TId> CreateAsync(
+        TEntity entity,
         CancellationToken cancellationToken = default)
     {
-        IDbConnection connection = _connectionFactory.GetOrCreateConnection();
-        string sql = $"DELETE FROM {_tableName} WHERE Id = @Id";
+        return await _connection.InsertAsync<TId, TEntity>(
+            entity, 
+            transaction: _transaction);
+    }
 
-        var command = new CommandDefinition(
-            sql,
-            new
-            {
-                Id = id
-            },
-            cancellationToken: cancellationToken);
+    public async Task<int> UpdateAsync(
+        TEntity entity,
+        CancellationToken cancellationToken = default)
+    {
+        return await _connection.UpdateAsync(
+            entity, 
+            transaction: _transaction);
+    }
 
-        int rowsAffected = await connection.ExecuteAsync(command);
-
-        return rowsAffected > 0;
+    public async Task<int> DeleteAsync(
+        TId id, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _connection.DeleteAsync<TEntity>(
+            id, 
+            transaction: _transaction);
     }
 }

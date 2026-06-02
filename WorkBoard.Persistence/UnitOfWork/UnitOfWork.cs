@@ -5,38 +5,23 @@ namespace WorkBoard.Persistence.UnitOfWork;
 
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly IDbConnectionFactory _connectionFactory;
-    private IDbTransaction? _transaction;
-    private bool _disposed;
+    private readonly IDbConnection _sqlConnection;
+    private readonly IDbTransaction _transaction;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
-        _connectionFactory = connectionFactory;
-    }
+        _sqlConnection = connectionFactory.GetOrCreateConnection();
 
-    /// <inheritdoc />
-    public IDbTransaction? CurrentTransaction => _transaction;
-
-    /// <inheritdoc />
-    public void BeginTransaction()
-    {
-        if (_transaction == null)
+        if (_sqlConnection.State == ConnectionState.Closed)
         {
-            var connection = _connectionFactory.GetOrCreateConnection();
-            _transaction = connection.BeginTransaction();
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task CommitAsync(
-        CancellationToken cancellationToken = default)
-    {
-        if (_transaction == null)
-        {
-            throw new InvalidOperationException(
-                "Cannot commit: No transaction has been started.");
+            _sqlConnection.Open();
         }
 
+        _transaction = _sqlConnection.BeginTransaction();
+    }
+
+    public void Commit()
+    {
         try
         {
             _transaction.Commit();
@@ -46,25 +31,16 @@ public class UnitOfWork : IUnitOfWork
             _transaction.Rollback();
             throw;
         }
-        finally
-        {
-            _transaction.Dispose();
-            _transaction = null;
-        }
-
-        await Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Clears transaction resources if they weren't committed.
-    /// </summary>
+    public void Rollback()
+    {
+        _transaction.Rollback();
+    }
+
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            _transaction?.Dispose();
-            _transaction = null;
-            _disposed = true;
-        }
+        _transaction?.Dispose();
+        _sqlConnection?.Dispose();
     }
 }
