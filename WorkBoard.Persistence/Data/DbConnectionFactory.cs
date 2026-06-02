@@ -12,7 +12,7 @@ public class DbConnectionFactory : IDbConnectionFactory
     private IDbConnection? _connection;
     private bool _disposed = false;
 
-    public IDbConnectionFactory(IOptions<DatabaseOptions> options)
+    public DbConnectionFactory(IOptions<DatabaseOptions> options)
     {
         if (options is null ||
             string.IsNullOrWhiteSpace(options.Value.ConnectionString))
