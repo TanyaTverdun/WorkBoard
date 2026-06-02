@@ -9,23 +9,14 @@ namespace WorkBoard.Persistence.Data;
 public class DbConnectionFactory : IDbConnectionFactory
 {
     private readonly string _connectionString;
-    private IDbConnection? _connection;
-    private bool _disposed = false;
 
     public DbConnectionFactory(IOptions<DatabaseOptions> options)
     {
-        if (options is null ||
-            string.IsNullOrWhiteSpace(options.Value.ConnectionString))
-        {
-            throw new ArgumentException(
-                "Database connection string cannot be null or empty.", 
-                nameof(options));
-        }
-
-        _connectionString = options.Value.ConnectionString;
+        _connectionString = options?.Value?.ConnectionString ?? 
+            throw new ArgumentException(nameof(options));
     }
 
-    public IDbConnection GetOrCreateConnection()
+    public IDbConnection Create()
     {
         return new SqlConnection(_connectionString);
     }

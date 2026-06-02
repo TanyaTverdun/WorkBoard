@@ -13,7 +13,7 @@ public class GenericRepository<TEntity, TId> : IGenericRepository<TEntity, TId>
 
     public GenericRepository(IDbConnectionFactory connectionFactory)
     {
-        _connection = connectionFactory.GetOrCreateConnection();
+        _connection = connectionFactory.Create();
         _transaction = null;
         SimpleCRUD.SetDialect(SimpleCRUD.Dialect.SQLServer);
     }
@@ -31,7 +31,7 @@ public class GenericRepository<TEntity, TId> : IGenericRepository<TEntity, TId>
         TId id, 
         CancellationToken cancellationToken = default)
     {
-        return await _connection.GetAsync<TEntity>(
+        return await _connection.GetAsync<TEntity?>(
             id, 
             transaction: _transaction);
     }
@@ -46,29 +46,29 @@ public class GenericRepository<TEntity, TId> : IGenericRepository<TEntity, TId>
         return result.ToList().AsReadOnly();
     }
 
-    public async Task<TId> CreateAsync(
+    public Task<TId> CreateAsync(
         TEntity entity,
         CancellationToken cancellationToken = default)
     {
-        return await _connection.InsertAsync<TId, TEntity>(
+        return _connection.InsertAsync<TId, TEntity>(
             entity, 
             transaction: _transaction);
     }
 
-    public async Task<int> UpdateAsync(
+    public Task<int> UpdateAsync(
         TEntity entity,
         CancellationToken cancellationToken = default)
     {
-        return await _connection.UpdateAsync(
+        return _connection.UpdateAsync(
             entity, 
             transaction: _transaction);
     }
 
-    public async Task<int> DeleteAsync(
+    public Task<int> DeleteAsync(
         TId id, 
         CancellationToken cancellationToken = default)
     {
-        return await _connection.DeleteAsync<TEntity>(
+        return _connection.DeleteAsync<TEntity>(
             id, 
             transaction: _transaction);
     }

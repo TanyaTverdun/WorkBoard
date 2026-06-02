@@ -4,5 +4,5 @@ namespace WorkBoard.Application.Common.Interfaces;
 
 public interface IDbConnectionFactory
 {
-    IDbConnection GetOrCreateConnection();
+    IDbConnection Create();
 }
