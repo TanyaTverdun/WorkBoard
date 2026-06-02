@@ -1,8 +1,9 @@
-﻿namespace WorkBoard.Domain.Entities;
+﻿using WorkBoard.Domain.Common;
 
-public class User
+namespace WorkBoard.Domain.Entities;
+
+public class User : BaseEntity<Guid>
 {
-    public Guid UserId { get; set; }
     public string? FullName { get; set; }
     public required string Email { get; set; }
     public string? AvatarUrl {get; set;}

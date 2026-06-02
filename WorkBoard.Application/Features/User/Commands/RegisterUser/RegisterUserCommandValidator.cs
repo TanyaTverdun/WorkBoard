@@ -2,15 +2,8 @@
 
 namespace WorkBoard.Application.Features.User.Commands.RegisterUser;
 
-/// <summary>
-/// Provides validation rules for the <see cref="RegisterUserCommand"/>
-/// </summary>
 public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    /// <summary>
-    /// Initializes a new instance of the 
-    /// <see cref="RegisterUserCommandValidator"/> class and defines rules
-    /// </summary>
     public RegisterUserCommandValidator()
     {
         RuleFor(v => v.UserId)

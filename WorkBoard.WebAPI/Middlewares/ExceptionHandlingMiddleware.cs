@@ -4,24 +4,11 @@ using System.Text.Json;
 
 namespace WorkBoard.WebAPI.Middlewares;
 
-/// <summary>
-/// Global exception handling middleware
-/// </summary>
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of the 
-    /// <see cref="ExceptionHandlingMiddleware"/> class
-    /// </summary>
-    /// <param name="next">
-    /// The next delegate in the HTTP request pipeline
-    /// </param>
-    /// <param name="logger">
-    /// The logger used for capturing error details
-    /// </param>
     public ExceptionHandlingMiddleware(
         RequestDelegate next, 
         ILogger<ExceptionHandlingMiddleware> logger)
@@ -30,15 +17,6 @@ public class ExceptionHandlingMiddleware
         _logger = logger;
     }
 
-    /// <summary>
-    /// Invokes the middleware to process the incoming HTTP request
-    /// </summary>
-    /// <param name="context">
-    /// The current <see cref="HttpContext"/> for the request
-    /// </param>
-    /// <returns>
-    /// A <see cref="Task"/> representing the asynchronous operation
-    /// </returns>
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -74,10 +52,19 @@ public class ExceptionHandlingMiddleware
                             g => g.Select(e => e.ErrorMessage).ToArray()
                         );
                     break;
+
+                case UnauthorizedAccessException:
+                    problemDetails.Title = "Unauthorized access.";
+                    problemDetails.Status = StatusCodes.Status401Unauthorized;
+                    problemDetails.Detail = 
+                        "You must be authenticated or have correct " +
+                        "permissions to access this resource.";
+                    break;
             }
 
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = problemDetails.Status ?? StatusCodes.Status500InternalServerError;
+            context.Response.StatusCode = problemDetails.Status ?? 
+                StatusCodes.Status500InternalServerError;
 
             var json = JsonSerializer.Serialize(problemDetails);
             await context.Response.WriteAsync(json);
