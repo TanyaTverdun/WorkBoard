@@ -1,11 +1,11 @@
 using Microsoft.Identity.Web;
+using WorkBoard.Application;
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
-using WorkBoard.WebAPI.Constants;
-using WorkBoard.WebAPI.Extensions;
-using WorkBoard.WebAPI.Middlewares;
-using WorkBoard.Application;
 using WorkBoard.Persistence;
+using WorkBoard.WebAPI;
+using WorkBoard.WebAPI.Constants;
+using WorkBoard.WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,12 +24,9 @@ builder.Services.AddMicrosoftIdentityWebApiAuthentication(
     builder.Configuration,
     ConfigurationSections.AzureAd);
 
-builder.Services.AddCustomJwtChallengeResponse();
-
+builder.Services.AddWebApiServices();
 builder.Services.AddPersistance();
 builder.Services.AddApplication();
-
-builder.Services.AddSwaggerWithJwtAuth();
 
 var app = builder.Build();
 
