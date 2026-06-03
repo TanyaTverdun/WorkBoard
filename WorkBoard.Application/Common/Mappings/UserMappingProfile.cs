@@ -8,7 +8,7 @@ public class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {
-        CreateMap<RegisterUserCommand, User>()
+        CreateMap<AuthUserCommand, User>()
             .ForMember(
                 dest => dest.Id, 
                 opt => opt.MapFrom(src => src.UserId))

@@ -15,22 +15,16 @@ public class UserController : ControllerBase
 {
     private readonly ISender _mediator;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UserController"/> class
-    /// </summary>
-    /// <param name="mediator">
-    /// The MediatR sender to dispatch commands and queries
-    /// </param>
     public UserController(ISender mediator)
     {
         _mediator = mediator;
     }
 
     /// <summary>
-    /// Registers a new user
+    /// Auth a new user
     /// </summary>
     /// <param name="command">
-    /// The registration data
+    /// The auth data
     /// </param>
     /// <param name="cancellationToken">
     /// A token to cancel the request
@@ -38,14 +32,14 @@ public class UserController : ControllerBase
     /// <returns>
     /// The unique identifier of the user
     /// </returns>
-    [HttpPost("register")]
+    [HttpPost("outh")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RegisterUser(
-        [FromBody] RegisterUserCommand command,
+    public async Task<IActionResult> AuthUser(
+        [FromBody] AuthUserCommand command,
         CancellationToken cancellationToken)
     {
         var userId = await _mediator

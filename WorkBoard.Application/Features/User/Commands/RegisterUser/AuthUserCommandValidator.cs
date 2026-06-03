@@ -2,9 +2,9 @@
 
 namespace WorkBoard.Application.Features.User.Commands.RegisterUser;
 
-public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
+public class AuthUserCommandValidator : AbstractValidator<AuthUserCommand>
 {
-    public RegisterUserCommandValidator()
+    public AuthUserCommandValidator()
     {
         RuleFor(v => v.UserId)
             .NotEmpty()

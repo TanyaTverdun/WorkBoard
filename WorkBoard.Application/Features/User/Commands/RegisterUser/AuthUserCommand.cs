@@ -2,7 +2,7 @@
 
 namespace WorkBoard.Application.Features.User.Commands.RegisterUser;
 
-public class RegisterUserCommand : IRequest<Guid>
+public class AuthUserCommand : IRequest<Guid>
 {
     public Guid UserId { get; set; }
 

@@ -5,14 +5,14 @@ using UserEntity = WorkBoard.Domain.Entities.User;
 
 namespace WorkBoard.Application.Features.User.Commands.RegisterUser;
 
-public class RegisterUserCommandHandler 
-    : IRequestHandler<RegisterUserCommand, Guid>
+public class AuthUserCommandHandler 
+    : IRequestHandler<AuthUserCommand, Guid>
 {
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IMapper _mapper;
 
-    public RegisterUserCommandHandler(
+    public AuthUserCommandHandler(
         IUserRepository userRepository,
         IUnitOfWorkFactory unitOfWorkFactory,
         IMapper mapper)
@@ -23,7 +23,7 @@ public class RegisterUserCommandHandler
     }
 
     public async Task<Guid> Handle(
-        RegisterUserCommand request,
+        AuthUserCommand request,
         CancellationToken cancellationToken)
     {
         var existingUser = await _userRepository.GetByIdAsync(
