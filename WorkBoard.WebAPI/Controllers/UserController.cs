@@ -32,13 +32,13 @@ public class UserController : ControllerBase
     /// <returns>
     /// The unique identifier of the user
     /// </returns>
-    [HttpPost("outh")]
+    [HttpPost("auth")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> AuthUser(
+    public async Task<IActionResult> AuthenticateAsync(
         [FromBody] AuthUserCommand command,
         CancellationToken cancellationToken)
     {
