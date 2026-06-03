@@ -10,12 +10,11 @@ public class UserMappingProfile : Profile
     {
         CreateMap<RegisterUserCommand, User>()
             .ForMember(
-                dest => dest.AvatarUrl, 
-                opt => opt.Ignore());
-
-        CreateMap<RegisterUserCommand, User>()
-            .ForMember(
                 dest => dest.Id, 
-                opt => opt.MapFrom(src => src.UserId));
+                opt => opt.MapFrom(src => src.UserId))
+
+            .ForMember(
+                dest => dest.AvatarUrl,
+                opt => opt.Ignore());
     }
 }
