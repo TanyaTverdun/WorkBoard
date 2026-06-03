@@ -5,5 +5,5 @@ namespace WorkBoard.Domain.Common;
 public abstract class BaseEntity<TId>
 {
     [Key]
-    public TId Id { get; set; } = default!;
+    public virtual TId Id { get; set; } = default!;
 }

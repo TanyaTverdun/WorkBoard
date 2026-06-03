@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Persistence.Data;
 using WorkBoard.Persistence.Repositories;
@@ -14,10 +15,16 @@ public static class DependencyInjection
         services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
 
         services.AddScoped(
-            typeof(IGenericRepository<,>), 
+            typeof(IGenericRepository<,>),
             typeof(GenericRepository<,>));
 
         services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
+
+        services.Scan(scan => scan
+            .FromAssemblies(Assembly.GetExecutingAssembly())
+            .AddClasses(classes => classes.AssignableTo(typeof(IGenericRepository<,>)))
+            .AsMatchingInterface()
+            .WithScopedLifetime());
 
         return services;
     }

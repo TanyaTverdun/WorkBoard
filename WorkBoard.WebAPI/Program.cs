@@ -1,5 +1,11 @@
+using Microsoft.Identity.Web;
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
+using WorkBoard.WebAPI.Constants;
+using WorkBoard.WebAPI.Extensions;
+using WorkBoard.WebAPI.Middlewares;
+using WorkBoard.Application;
+using WorkBoard.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +20,20 @@ builder.Services.Configure<DatabaseOptions>(
 
 builder.Services.AddTransient<DatabaseInitializer>();
 
+builder.Services.AddMicrosoftIdentityWebApiAuthentication(
+    builder.Configuration,
+    ConfigurationSections.AzureAd);
+
+builder.Services.AddCustomJwtChallengeResponse();
+
+builder.Services.AddPersistance();
+builder.Services.AddApplication();
+
+builder.Services.AddSwaggerWithJwtAuth();
+
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -23,14 +42,19 @@ using (var scope = app.Services.CreateScope())
     await initializer.Initialize();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "WorkBoard API v1");
+    });
 }
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

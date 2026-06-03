@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Persistence.Repositories;
 
 namespace WorkBoard.Persistence.UnitOfWork;
 
@@ -8,9 +9,11 @@ public class UnitOfWork : IUnitOfWork
     private readonly IDbConnection _sqlConnection;
     private readonly IDbTransaction _transaction;
 
+    private IUserRepository? _userRepository;
+
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
-        _sqlConnection = connectionFactory.GetOrCreateConnection();
+        _sqlConnection = connectionFactory.Create();
 
         if (_sqlConnection.State == ConnectionState.Closed)
         {
@@ -19,6 +22,9 @@ public class UnitOfWork : IUnitOfWork
 
         _transaction = _sqlConnection.BeginTransaction();
     }
+
+    public IUserRepository UserRepository =>
+        _userRepository ??= new UserRepository(_sqlConnection, _transaction);
 
     public void Commit()
     {
