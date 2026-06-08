@@ -24,7 +24,7 @@ builder.Services.AddMicrosoftIdentityWebApiAuthentication(
     builder.Configuration,
     ConfigurationSections.AzureAd);
 
-builder.Services.AddWebApiServices();
+builder.Services.AddWebApiServices(builder.Configuration);
 builder.Services.AddPersistance();
 builder.Services.AddApplication();
 
@@ -50,6 +50,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(WorkBoard.WebAPI.DependencyInjection.BlazorWasmPolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();
