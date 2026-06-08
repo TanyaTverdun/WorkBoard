@@ -21,9 +21,6 @@ public static class DependencyInjection
 
         services.AddCustomJwtChallengeResponse();
 
-        services.AddOptions<CorsOptions>()
-            .Bind(configuration.GetSection(CorsOptions.SectionName));
-
         services.AddCors(options =>
         {
             var corsOptions = configuration.GetSection(
