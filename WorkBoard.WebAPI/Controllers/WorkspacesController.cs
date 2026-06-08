@@ -1,7 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Features.Workspace.Commands.CreateWorkspace;
+using WorkBoard.Application.Features.Workspace.Queries.GetUserWorkspaces;
 
 namespace WorkBoard.WebAPI.Controllers;
 
@@ -53,5 +55,36 @@ public class WorkspacesController : ControllerBase
         var workspaceId = await _mediator.Send(command, cancellationToken);
 
         return Ok(workspaceId);
+    }
+
+    /// <summary>
+    /// Retrieves all workspaces where the current user is a member
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A list of workspaces with the user's role and subscription tier
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the list of workspaces
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated via Azure Entra ID
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<UserWorkspaceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<UserWorkspaceDto>>> GetMyWorkspaces(
+        CancellationToken cancellationToken)
+    {
+        var query = new GetUserWorkspacesQuery();
+        var workspaces = await _mediator.Send(query, cancellationToken);
+
+        return Ok(workspaces);
     }
 }
