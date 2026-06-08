@@ -5,14 +5,17 @@ using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Persistence.Repositories;
 
-public class UserRepository : GenericRepository<User, Guid>, IUserRepository
+public class WorkspaceRepository : 
+    GenericRepository<Workspace, Guid>, IWorkspaceRepository
 {
-    public UserRepository(IDbConnectionFactory connectionFactory)
+    public WorkspaceRepository(IDbConnectionFactory connectionFactory)
         : base(connectionFactory)
     {
     }
 
-    internal UserRepository(IDbConnection connection, IDbTransaction transaction)
+    internal WorkspaceRepository(
+        IDbConnection connection, 
+        IDbTransaction transaction)
         : base(connection, transaction)
     {
     }
