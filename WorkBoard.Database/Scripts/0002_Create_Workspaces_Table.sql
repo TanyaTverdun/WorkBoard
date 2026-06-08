@@ -7,6 +7,11 @@ CREATE TABLE [Workspaces] (
     [UpdatedAt]         DATETIME2           NULL DEFAULT NULL,
     [UpdatedBy]         UNIQUEIDENTIFIER    NULL DEFAULT NULL,
     
-    CONSTRAINT [FK_Workspaces_CreatedBy_Users] FOREIGN KEY ([CreatedBy]) REFERENCES [Users]([UserId]),
-    CONSTRAINT [FK_Workspaces_UpdatedBy_Users] FOREIGN KEY ([UpdatedBy]) REFERENCES [Users]([UserId])
+    CONSTRAINT [FK_Workspaces_CreatedBy_Users] 
+        FOREIGN KEY ([CreatedBy]) 
+        REFERENCES [Users]([UserId]),
+
+    CONSTRAINT [FK_Workspaces_UpdatedBy_Users] 
+        FOREIGN KEY ([UpdatedBy]) 
+        REFERENCES [Users]([UserId])
 );
