@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Features.User.Commands.RegisterUser;
-using WorkBoard.WebAPI.Services;
 
 namespace WorkBoard.WebAPI.Controllers;
 
