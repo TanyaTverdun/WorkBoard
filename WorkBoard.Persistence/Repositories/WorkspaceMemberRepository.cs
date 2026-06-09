@@ -6,23 +6,19 @@ using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Persistence.Repositories;
 
-public class WorkspaceMemberRepository : IWorkspaceMemberRepository
+public class WorkspaceMemberRepository : 
+    GenericRepository<WorkspaceMember, (Guid, Guid)>, IWorkspaceMemberRepository
 {
-    private readonly IDbConnection _connection;
-    private readonly IDbTransaction? _transaction;
-
     public WorkspaceMemberRepository(IDbConnectionFactory connectionFactory)
+        : base(connectionFactory)
     {
-        _connection = connectionFactory.Create();
-        _transaction = null;
     }
 
     internal WorkspaceMemberRepository(
         IDbConnection connection, 
         IDbTransaction transaction)
+        : base(connection, transaction)
     {
-        _connection = connection;
-        _transaction = transaction;
     }
 
     public async Task AddMemberAsync(
