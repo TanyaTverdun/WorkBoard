@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Repositories;
 using UserEntity = WorkBoard.Domain.Entities.User;
 
 namespace WorkBoard.Application.Features.User.Commands.RegisterUser;
