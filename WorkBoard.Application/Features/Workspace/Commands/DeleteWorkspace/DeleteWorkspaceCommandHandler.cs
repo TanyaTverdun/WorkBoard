@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Domain.Enums;
 
@@ -28,6 +29,16 @@ public class DeleteWorkspaceCommandHandler
 
         using var uow = _unitOfWorkFactory.Create();
 
+        var workspaceExists = await uow.WorkspaceRepository.GetByIdAsync(
+            request.WorkspaceId, 
+            cancellationToken);
+
+        if (workspaceExists == null)
+        {
+            throw new NotFoundException(
+                $"Workspace with ID {request.WorkspaceId} was not found.");
+        }
+
         var membership = await uow.WorkspaceMemberRepository.GetMembershipAsync(
             currentUserId,
             request.WorkspaceId,
@@ -35,7 +46,7 @@ public class DeleteWorkspaceCommandHandler
 
         if (membership == null || membership.UserRole != WorkspaceRole.Owner)
         {
-            throw new UnauthorizedAccessException(
+            throw new ForbiddenAccessException(
                 "Only the workspace owner can delete it.");
         }
 
