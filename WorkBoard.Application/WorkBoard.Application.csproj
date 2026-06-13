@@ -7,13 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Boards\Queries\GetBoardDetails\**" />
+    <EmbeddedResource Remove="Features\Boards\Queries\GetBoardDetails\**" />
+    <None Remove="Features\Boards\Queries\GetBoardDetails\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WorkBoard.Domain\WorkBoard.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
     <Folder Include="Features\Boards\Commands\CreateBoard\" />
-    <Folder Include="Features\Boards\Queries\GetBoardDetails\" />
   </ItemGroup>
 
   <ItemGroup>
