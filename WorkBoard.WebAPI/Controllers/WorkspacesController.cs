@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Features.Workspace.Commands.CreateWorkspace;
+using WorkBoard.Application.Features.Workspace.Commands.DeleteWorkspace;
 using WorkBoard.Application.Features.Workspace.Queries.GetUserWorkspaces;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -86,5 +87,46 @@ public class WorkspacesController : ControllerBase
         var workspaces = await _mediator.Send(query, cancellationToken);
 
         return Ok(workspaces);
+    }
+
+    /// <summary>
+    /// Deletes a workspace by its unique identifier
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace to delete
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="204">
+    /// No Content. Success, workspace deleted successfully
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user is not the owner of the workspace
+    /// </response>
+    /// <response code="404">
+    /// Not Found. If the workspace does not exist
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Delete(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteWorkspaceCommand { WorkspaceId = id };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
