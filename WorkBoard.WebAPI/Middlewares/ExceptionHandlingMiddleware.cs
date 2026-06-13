@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using WorkBoard.Application.Common.Exceptions;
 
 namespace WorkBoard.WebAPI.Middlewares;
 
@@ -51,6 +52,18 @@ public class ExceptionHandlingMiddleware
                             g => g.Key,
                             g => g.Select(e => e.ErrorMessage).ToArray()
                         );
+                    break;
+
+                case NotFoundException notFoundEx:
+                    problemDetails.Title = "The requested resource was not found.";
+                    problemDetails.Status = StatusCodes.Status404NotFound;
+                    problemDetails.Detail = notFoundEx.Message;
+                    break;
+
+                case ForbiddenAccessException forbiddenEx:
+                    problemDetails.Title = "Access denied.";
+                    problemDetails.Status = StatusCodes.Status403Forbidden;
+                    problemDetails.Detail = forbiddenEx.Message;
                     break;
 
                 case UnauthorizedAccessException:
