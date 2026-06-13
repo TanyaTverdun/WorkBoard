@@ -1,6 +1,6 @@
 ﻿namespace WorkBoard.Domain.Enums;
 
-public enum WorkspaceRole : byte
+public enum UserRole : byte
 {
     Owner = 0,
     Member = 1,

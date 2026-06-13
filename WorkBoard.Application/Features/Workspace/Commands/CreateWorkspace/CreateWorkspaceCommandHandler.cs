@@ -43,7 +43,7 @@ public class CreateWorkspaceCommandHandler :
         {
             UserId = currentUserId,
             WorkspaceId = workspaceId,
-            UserRole = WorkspaceRole.Owner
+            UserRole = UserRole.Owner
         };
 
         using var uow = _unitOfWorkFactory.Create();

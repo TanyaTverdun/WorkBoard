@@ -6,5 +6,5 @@ public record UserWorkspaceDto(
     Guid Id,
     string Name,
     SubscriptionTier SubscriptionTier,
-    WorkspaceRole UserRole
+    UserRole UserRole
 );

@@ -43,4 +43,34 @@ public class WorkspaceMemberRepository :
 
         await _connection.ExecuteAsync(command);
     }
+
+    public async Task<bool> IsMemberAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM 
+                        WorkspaceMembers 
+                    WHERE 
+                        WorkspaceId = @WorkspaceId AND 
+                        UserId = @UserId
+                ) THEN CAST(1 AS BIT)
+                ELSE CAST(0 AS BIT)
+            END;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                WorkspaceId = workspaceId,
+                UserId = userId
+            },
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteScalarAsync<bool>(command);
+    }
 }
