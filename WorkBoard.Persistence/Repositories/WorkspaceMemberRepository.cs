@@ -43,4 +43,33 @@ public class WorkspaceMemberRepository :
 
         await _connection.ExecuteAsync(command);
     }
+
+    public async Task<WorkspaceMember?> GetMembershipAsync(
+        Guid userId,
+        Guid workspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                UserId, 
+                WorkspaceId, 
+                UserRole
+            FROM 
+                WorkspaceMembers
+            WHERE 
+                UserId = @UserId 
+                AND WorkspaceId = @WorkspaceId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                WorkspaceId = workspaceId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryFirstOrDefaultAsync<WorkspaceMember>(command);
+    }
 }
