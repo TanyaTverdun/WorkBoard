@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Features.Workspace.Commands.CreateWorkspace;
 using WorkBoard.Application.Features.Workspace.Queries.GetUserWorkspaces;
+using WorkBoard.Application.Features.Workspace.Queries.GetWorkspaceById;
 
 namespace WorkBoard.WebAPI.Controllers;
 
@@ -86,5 +87,52 @@ public class WorkspacesController : ControllerBase
         var workspaces = await _mediator.Send(query, cancellationToken);
 
         return Ok(workspaces);
+    }
+
+    /// <summary>
+    /// Get a specific workspace by its unique identifier
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// The workspace details including the user's role
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the workspace details
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user is not a member of this workspace
+    /// </response>
+    /// <response code="404">
+    /// Not Found. If the workspace does not exist
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(UserWorkspaceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UserWorkspaceDto>> GetById(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetWorkspaceByIdQuery 
+        { 
+            WorkspaceId = id 
+        };
+
+        var workspace = await _mediator.Send(query, cancellationToken);
+
+        return Ok(workspace);
     }
 }
