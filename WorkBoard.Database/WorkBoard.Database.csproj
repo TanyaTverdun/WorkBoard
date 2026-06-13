@@ -11,12 +11,16 @@
     <None Remove="Scripts\0001_Create_Users_Table.sql" />
     <None Remove="Scripts\0002_Create_Workspaces_Table.sql" />
     <None Remove="Scripts\0003_Create_WorkspaceMembers_Table.sql" />
+    <None Remove="Scripts\0004_Create_Boards_Table.sql" />
+    <None Remove="Scripts\0005_Create_BoardMembers_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Scripts\0001_Create_Users_Table.sql" />
     <EmbeddedResource Include="Scripts\0002_Create_Workspaces_Table.sql" />
     <EmbeddedResource Include="Scripts\0003_Create_WorkspaceMembers_Table.sql" />
+    <EmbeddedResource Include="Scripts\0004_Create_Boards_Table.sql" />
+    <EmbeddedResource Include="Scripts\0005_Create_BoardMembers_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
