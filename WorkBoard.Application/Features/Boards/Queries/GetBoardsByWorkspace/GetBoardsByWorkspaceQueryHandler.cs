@@ -39,11 +39,11 @@ public class GetBoardsByWorkspaceQueryHandler
         userId.Value,
         cancellationToken);
 
-        //if (!isWorkspaceMember)
-        //{
-        //    throw new ForbiddenAccessException(
-        //        "You do not have access to this workspace.");
-        //}
+        if (!isWorkspaceMember)
+        {
+            throw new ForbiddenAccessException(
+                "You do not have access to this workspace.");
+        }
 
         return await _boardRepository.GetByWorkspaceIdAsync(
             request.WorkspaceId,
