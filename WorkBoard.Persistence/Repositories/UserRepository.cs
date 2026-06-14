@@ -43,6 +43,7 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
                 Id = id,
                 Email = email
             },
+            transaction: _transaction,
             cancellationToken: cancellationToken);
 
         return await _connection.QueryFirstOrDefaultAsync<User>(command);
