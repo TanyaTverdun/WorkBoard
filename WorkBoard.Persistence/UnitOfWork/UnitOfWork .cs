@@ -13,6 +13,8 @@ public class UnitOfWork : IUnitOfWork
     private IUserRepository? _userRepository;
     private IWorkspaceRepository? _workspaceRepository;
     private IWorkspaceMemberRepository? _workspaceMemberRepository;
+    private IBoardRepository? _boardRepository;
+    private IBoardMemberRepository? _boardMemberRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -40,6 +42,12 @@ public class UnitOfWork : IUnitOfWork
         _workspaceMemberRepository ??= new WorkspaceMemberRepository(
             _sqlConnection, 
             _transaction);
+
+    public IBoardRepository BoardRepository =>
+        _boardRepository ??= new BoardRepository(_sqlConnection, _transaction);
+
+    public IBoardMemberRepository BoardMemberRepository =>
+        _boardMemberRepository ??= new BoardMemberRepository(_sqlConnection, _transaction);
 
     public void Commit()
     {
