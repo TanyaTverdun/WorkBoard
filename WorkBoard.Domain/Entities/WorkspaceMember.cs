@@ -11,6 +11,6 @@ public class WorkspaceMember : BaseEntity<(Guid, Guid)>
 
     public Guid WorkspaceId { get; set; }
 
-    public UserRole UserRole { get; set; } = 
-        UserRole.Member;
+    public WorkspaceRole UserRole { get; set; } = 
+        WorkspaceRole.Member;
 }

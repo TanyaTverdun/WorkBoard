@@ -11,5 +11,5 @@ public class BoardMember : BaseEntity<(Guid, Guid)>
 
     public Guid BoardId { get; set; }
 
-    public UserRole UserRole { get; set; } = UserRole.Member;
+    public BoardRole UserRole { get; set; } = BoardRole.Member;
 }

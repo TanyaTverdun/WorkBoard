@@ -7,5 +7,5 @@ public class BoardDto
     public Guid Id { get; set; }
     public Guid WorkspaceId { get; set; }
     public required string Name { get; set; }
-    public UserRole UserRole { get; set; }
+    public BoardRole UserRole { get; set; }
 }
