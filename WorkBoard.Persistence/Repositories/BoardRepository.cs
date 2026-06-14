@@ -52,6 +52,7 @@ GenericRepository<Board, Guid>, IBoardRepository
                 WorkspaceId = workspaceId,
                 UserId = userId
             },
+            transaction: _transaction,
             cancellationToken: cancellationToken);
 
         var boards = await _connection.QueryAsync<BoardDto>(command);

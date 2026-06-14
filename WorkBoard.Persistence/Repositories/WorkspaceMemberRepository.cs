@@ -69,6 +69,7 @@ public class WorkspaceMemberRepository :
                 WorkspaceId = workspaceId,
                 UserId = userId
             },
+            transaction: _transaction,
             cancellationToken: cancellationToken);
 
         return await _connection.ExecuteScalarAsync<bool>(command);

@@ -48,6 +48,7 @@ public class WorkspaceRepository :
             { 
                 UserId = userId 
             },
+            transaction: _transaction,
             cancellationToken: cancellationToken);
 
         var workspaces = await _connection.QueryAsync<UserWorkspaceDto>(command);
