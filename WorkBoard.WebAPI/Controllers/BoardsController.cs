@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
+using WorkBoard.Application.Features.Boards.Commands.DeleteBoard;
 using WorkBoard.Application.Features.Boards.Commands.UpdateBoard;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
@@ -110,7 +111,50 @@ public class BoardsController : ControllerBase
 
         return Ok(boardId);
     }
+    
+    /// <summary>
+    /// Deletes an existing board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board to delete
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// An empty OK response if the deletion was successful
+    /// </returns>
+    /// <response code="200">
+    /// The board was successfully deleted
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// The user is  an observer in the workspace
+    /// </response>
+    /// <response code="404">
+    /// The specified board was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpDelete("{boardId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteBoard(
+        Guid boardId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteBoardCommand(boardId);
+        await _mediator.Send(command, cancellationToken);
 
+        return Ok();
+    }
+    
     /// <summary>
     /// Updates an existing board's details
     /// </summary>
@@ -157,9 +201,9 @@ public class BoardsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new UpdateBoardCommand(boardId, request.Name);
-
+        
         await _mediator.Send(command, cancellationToken);
 
         return Ok();
     }
-}
+}      
