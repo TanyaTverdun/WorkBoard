@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
+using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -55,5 +56,57 @@ public class BoardsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Creates a new board within the specified workspace.
+    /// </summary>
+    /// <param name="workspaceId">
+    /// The unique identifier of the workspace where the board will be created
+    /// </param>
+    /// <param name="request">
+    /// The object containing the name of the new board
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// The unique identifier of the newly created board
+    /// </returns>
+    /// <response code="201">
+    /// The board was successfully created
+    /// </response>
+    /// <response code="400">
+    /// The request data is invalid
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated within the system
+    /// </response>
+    /// <response code="403">
+    /// The user is not a member of this workspace and cannot create boards here
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred while processing the request
+    /// </response>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Guid))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<Guid>> CreateBoard(
+        Guid workspaceId,
+        [FromBody] CreateBoardRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new CreateBoardCommand(
+            workspaceId, 
+            request.Name);
+
+        var boardId = await _mediator.Send(
+            command, 
+            cancellationToken);
+
+        return Ok(boardId);
     }
 }

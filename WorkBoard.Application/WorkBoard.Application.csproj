@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
+    <Folder Include="Features\Boards\Queries\GetBoardDetails\" />
     <Folder Include="Features\Boards\Commands\CreateBoard\" />
   </ItemGroup>
 
