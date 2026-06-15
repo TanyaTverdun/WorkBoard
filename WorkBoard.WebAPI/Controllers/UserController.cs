@@ -6,10 +6,6 @@ using WorkBoard.Application.Features.User.Commands.RegisterUser;
 
 namespace WorkBoard.WebAPI.Controllers;
 
-/// <summary>
-/// Provides endpoints for managing user profiles
-/// and authentication state
-/// </summary>
 [ApiController]
 [Route("api/users")]
 public class UserController : ControllerBase
