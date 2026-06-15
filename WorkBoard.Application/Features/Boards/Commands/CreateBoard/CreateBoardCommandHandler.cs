@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
@@ -44,7 +45,7 @@ public class CreateBoardCommandHandler
 
         var board = new Board
         {
-            BoardId = boardId,
+            Id = boardId,
             WorkspaceId = request.WorkspaceId,
             Name = request.Name,
             IsArchived = false,
