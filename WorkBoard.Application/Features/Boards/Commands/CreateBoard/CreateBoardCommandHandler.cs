@@ -30,15 +30,15 @@ public class CreateBoardCommandHandler
 
         using var uow = _unitOfWorkFactory.Create();
 
-        var isWorkspaceMember = await uow.WorkspaceMemberRepository.IsMemberAsync(
-            request.WorkspaceId,
+        var membership = await uow.WorkspaceMemberRepository.GetMembershipAsync(
             currentUserId,
+            request.WorkspaceId,
             cancellationToken);
 
-        if (!isWorkspaceMember)
+        if (membership == null || membership.UserRole == WorkspaceRole.Observer)
         {
             throw new ForbiddenAccessException(
-                "You do not have access to this workspace.");
+                "You do not have permission to update boards in this workspace.");
         }
 
         var boardId = Guid.NewGuid();
