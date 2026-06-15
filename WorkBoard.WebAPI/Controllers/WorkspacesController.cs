@@ -129,10 +129,15 @@ public class WorkspacesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(
         [FromRoute] Guid id,
-        [FromBody] UpdateWorkspaceCommand command,
+        [FromBody] UpdateWorkspaceRequest request,
         CancellationToken cancellationToken)
     {
-        command.WorkspaceId = id;
+        var command = new UpdateWorkspaceCommand
+        {
+            WorkspaceId = id,
+            Name = request.Name
+        };
+
         await _mediator.Send(command, cancellationToken);
 
         return NoContent();
