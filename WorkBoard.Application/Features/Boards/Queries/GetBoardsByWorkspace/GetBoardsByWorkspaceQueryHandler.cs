@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Dtos.Board;
+using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
