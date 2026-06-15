@@ -1,4 +1,4 @@
-﻿using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -12,5 +12,10 @@ public interface IWorkspaceMemberRepository :
     Task<bool> IsMemberAsync(
         Guid workspaceId,
         Guid userId,
+        CancellationToken cancellationToken = default);
+
+    Task<WorkspaceMember?> GetMembershipAsync(
+        Guid userId,
+        Guid workspaceId,
         CancellationToken cancellationToken = default);
 }

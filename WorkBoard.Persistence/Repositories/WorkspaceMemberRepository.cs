@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using System.Data;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
@@ -43,7 +43,7 @@ public class WorkspaceMemberRepository :
 
         await _connection.ExecuteAsync(command);
     }
-
+    
     public async Task<bool> IsMemberAsync(
         Guid workspaceId,
         Guid userId,
@@ -61,17 +61,43 @@ public class WorkspaceMemberRepository :
                 ) THEN CAST(1 AS BIT)
                 ELSE CAST(0 AS BIT)
             END;";
-
-        var command = new CommandDefinition(
+         var command = new CommandDefinition(
             sql,
             new
             {
-                WorkspaceId = workspaceId,
-                UserId = userId
+              WorkspaceId = workspaceId,
+              UserId = userId
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
+            
+          return await _connection.ExecuteScalarAsync<bool>(command);
+    }
 
-        return await _connection.ExecuteScalarAsync<bool>(command);
+    public async Task<WorkspaceMember?> GetMembershipAsync(
+        Guid userId,
+        Guid workspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                UserId, 
+                WorkspaceId, 
+                UserRole
+            FROM 
+                WorkspaceMembers
+            WHERE 
+                UserId = @UserId 
+                AND WorkspaceId = @WorkspaceId;";
+         var command = new CommandDefinition(
+            sql,
+            new
+            {
+              UserId = userId,
+              WorkspaceId = workspaceId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+         return await _connection.QueryFirstOrDefaultAsync<WorkspaceMember>(command);
     }
 }

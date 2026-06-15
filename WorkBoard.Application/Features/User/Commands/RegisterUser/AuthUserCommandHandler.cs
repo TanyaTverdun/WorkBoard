@@ -27,8 +27,9 @@ public class AuthUserCommandHandler
         AuthUserCommand request,
         CancellationToken cancellationToken)
     {
-        var existingUser = await _userRepository.GetByIdAsync(
-            request.UserId, 
+        var existingUser = await _userRepository.GetByIdOrEmailAsync(
+            request.UserId,
+            request.Email,
             cancellationToken);
 
         if (existingUser != null)
