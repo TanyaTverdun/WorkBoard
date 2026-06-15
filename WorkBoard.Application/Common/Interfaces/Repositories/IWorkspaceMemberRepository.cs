@@ -8,4 +8,9 @@ public interface IWorkspaceMemberRepository :
     Task AddMemberAsync(
         WorkspaceMember member, 
         CancellationToken cancellationToken = default);
+
+    Task<WorkspaceMember?> GetMembershipAsync(
+        Guid userId,
+        Guid workspaceId,
+        CancellationToken cancellationToken = default);
 }
