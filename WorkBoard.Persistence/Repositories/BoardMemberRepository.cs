@@ -43,4 +43,32 @@ public class BoardMemberRepository
 
         await _connection.ExecuteAsync(command);
     }
+
+    public async Task<bool> IsMemberAsync(
+        Guid boardId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM BoardMembers 
+                    WHERE BoardId = @BoardId AND UserId = @UserId
+                ) THEN 1 
+                ELSE 0 
+            END;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                UserId = userId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteScalarAsync<bool>(command);
+    }
 }

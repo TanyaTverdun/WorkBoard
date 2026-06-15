@@ -8,4 +8,9 @@ public interface IBoardMemberRepository
     Task AddMemberAsync(
         BoardMember member, 
         CancellationToken cancellationToken = default);
+
+    Task<bool> IsMemberAsync(
+        Guid boardId, 
+        Guid userId, 
+        CancellationToken cancellationToken = default);
 }
