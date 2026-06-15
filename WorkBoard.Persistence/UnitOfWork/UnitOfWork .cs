@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     private IWorkspaceMemberRepository? _workspaceMemberRepository;
     private IBoardRepository? _boardRepository;
     private IBoardMemberRepository? _boardMemberRepository;
+    private ISectionRepository? _sectionRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -44,10 +45,19 @@ public class UnitOfWork : IUnitOfWork
             _transaction);
 
     public IBoardRepository BoardRepository =>
-        _boardRepository ??= new BoardRepository(_sqlConnection, _transaction);
+        _boardRepository ??= new BoardRepository(
+            _sqlConnection, 
+            _transaction);
 
     public IBoardMemberRepository BoardMemberRepository =>
-        _boardMemberRepository ??= new BoardMemberRepository(_sqlConnection, _transaction);
+        _boardMemberRepository ??= new BoardMemberRepository(
+            _sqlConnection, 
+            _transaction);
+
+    public ISectionRepository SectionRepository =>
+        _sectionRepository ??= new SectionRepository(
+            _sqlConnection,
+            _transaction);
 
     public void Commit()
     {
