@@ -13,4 +13,9 @@ public interface IBoardMemberRepository
         Guid boardId, 
         Guid userId, 
         CancellationToken cancellationToken = default);
+
+    Task<BoardMember?> GetMembershipAsync(
+        Guid userId, 
+        Guid boardId, 
+        CancellationToken cancellationToken = default);
 }

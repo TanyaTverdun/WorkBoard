@@ -71,4 +71,33 @@ public class BoardMemberRepository
 
         return await _connection.ExecuteScalarAsync<bool>(command);
     }
+
+    public async Task<BoardMember?> GetMembershipAsync(
+        Guid userId,
+        Guid boardId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                UserId, 
+                BoardId, 
+                UserRole
+            FROM 
+                BoardMembers
+            WHERE 
+                UserId = @UserId 
+                AND BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                BoardId = boardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryFirstOrDefaultAsync<BoardMember>(command);
+    }
 }
