@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
@@ -8,6 +9,7 @@ using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
 namespace WorkBoard.WebAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/workspaces/{workspaceId:guid}/boards")]
 public class BoardsController : ControllerBase
