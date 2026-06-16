@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Features.Sections.Commands.CreateSection;
 using WorkBoard.Application.Features.Sections.Commands.DeleteSection;
+using WorkBoard.Application.Features.Sections.Commands.MoveSection;
 using WorkBoard.Application.Features.Sections.Commands.UpdateSectionName;
 using WorkBoard.Application.Features.Sections.Queries.GetSectionsByBoard;
 
@@ -217,6 +218,64 @@ public class SectionsController : ControllerBase
         var command = new DeleteSectionCommand(
             boardId, 
             sectionId);
+
+        await _mediator.Send(
+            command, 
+            cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Moves a section to a new position
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board
+    /// </param>
+    /// <param name="sectionId">
+    /// The unique identifier of the section to move
+    /// </param>
+    /// <param name="request">
+    /// The request body containing the new position value
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="204">
+    /// If the section was moved successfully
+    /// </response>
+    /// <response code="400">
+    /// If the position value is invalid
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this board
+    /// </response>
+    /// <response code="404">
+    /// If the section was not found on this board
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs
+    /// </response>
+    [HttpPut("{sectionId:guid}/position")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Move(
+        [FromRoute] Guid boardId,
+        [FromRoute] Guid sectionId,
+        [FromBody] MoveSectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new MoveSectionCommand(
+            boardId, 
+            sectionId, 
+            request.NewPosition);
 
         await _mediator.Send(
             command, 
