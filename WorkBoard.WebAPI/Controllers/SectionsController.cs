@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Section;
+using WorkBoard.Application.Features.Sections.Commands.CreateSection;
 using WorkBoard.Application.Features.Sections.Queries.GetSectionsByBoard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -57,5 +58,57 @@ public class SectionsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Creates a new section within a specific board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board where the section will be created
+    /// </param>
+    /// <param name="request">
+    /// The section details (Name)
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// The unique identifier of the newly created section
+    /// </returns>
+    /// <response code="201">
+    /// Returns the identifier of the created section
+    /// </response>
+    /// <response code="400">
+    /// If the input data is invalid or name length exceeds limits
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this board
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs
+    /// </response>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Guid))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Create(
+        [FromRoute] Guid boardId,
+        [FromBody] CreateSectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new CreateSectionCommand(
+            boardId, 
+            request.Name);
+
+        var sectionId = await _mediator.Send(
+            command, 
+            cancellationToken);
+
+        return Ok(sectionId);
     }
 }
