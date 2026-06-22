@@ -1,4 +1,5 @@
-﻿using WorkBoard.Domain.Entities;
+﻿using WorkBoard.Application.Common.Dtos.BoardMembers;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -17,5 +18,9 @@ public interface IBoardMemberRepository
     Task<BoardMember?> GetMembershipAsync(
         Guid userId, 
         Guid boardId, 
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BoardMemberWithUserDto>> GetMembersByBoardAsync(
+        Guid boardId,
         CancellationToken cancellationToken = default);
 }

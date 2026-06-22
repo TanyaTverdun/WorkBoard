@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using System.Data;
+using WorkBoard.Application.Common.Dtos.BoardMembers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -99,5 +100,43 @@ public class BoardMemberRepository
             cancellationToken: cancellationToken);
 
         return await _connection.QueryFirstOrDefaultAsync<BoardMember>(command);
+    }
+
+    public async Task<IReadOnlyList<BoardMemberWithUserDto>> GetMembersByBoardAsync(
+    Guid boardId,
+    CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+        SELECT 
+            bm.UserId, 
+            bm.BoardId, 
+            bm.UserRole, 
+            u.UserId, 
+            u.FullName, 
+            u.Email, 
+            u.AvatarUrl 
+        FROM 
+            BoardMembers bm
+        JOIN 
+            Users u ON bm.UserId = u.UserId
+        WHERE 
+            bm.BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                BoardId = boardId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var result = await _connection
+            .QueryAsync<BoardMember, User, BoardMemberWithUserDto>(
+                command,
+                (member, user) => new BoardMemberWithUserDto(member, user),
+                splitOn: "UserId");
+
+        return result.ToList().AsReadOnly();
     }
 }
