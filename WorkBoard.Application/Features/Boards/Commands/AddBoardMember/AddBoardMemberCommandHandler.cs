@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Boards.Commands.AddBoardMember;
@@ -60,6 +61,25 @@ public class AddBoardMemberCommandHandler
 
         try
         {
+            var isTargetInWorkspace = await uow.WorkspaceMemberRepository.IsMemberAsync(
+                board.WorkspaceId,
+                request.TargetUserId,
+                cancellationToken);
+
+            if (!isTargetInWorkspace)
+            {
+                var newWorkspaceMember = new WorkspaceMember
+                {
+                    UserId = request.TargetUserId,
+                    WorkspaceId = board.WorkspaceId,
+                    UserRole = WorkspaceRole.Observer
+                };
+
+                await uow.WorkspaceMemberRepository.AddMemberAsync(
+                    newWorkspaceMember,
+                    cancellationToken);
+            }
+
             await uow.BoardMemberRepository.AddMemberAsync(
                 request.BoardId,
                 request.TargetUserId,
