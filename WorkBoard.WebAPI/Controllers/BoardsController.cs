@@ -5,6 +5,7 @@ using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
 using WorkBoard.Application.Features.Boards.Commands.DeleteBoard;
 using WorkBoard.Application.Features.Boards.Commands.UpdateBoard;
+using WorkBoard.Application.Features.Boards.Queries.GetBoardById;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -207,5 +208,51 @@ public class BoardsController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return Ok();
+    }
+
+    /// <summary>
+    /// Retrieves a specific board by its unique identifier
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board to retrieve
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// The details of the requested board
+    /// </returns>
+    /// <response code="200">
+    /// The board details were successfully retrieved
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated within the system
+    /// </response>
+    /// <response code="403">
+    /// The user does not have access to this board
+    /// </response>
+    /// <response code="404">
+    /// The specified board was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred while processing the request
+    /// </response>
+    [HttpGet("{boardId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BoardDto))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<BoardDto>> GetBoard(
+        Guid boardId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetBoardByIdQuery(boardId);
+
+        var result = await _mediator.Send(
+            query, 
+            cancellationToken);
+
+        return Ok(result);
     }
 }      
