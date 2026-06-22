@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using System.Data;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -47,5 +48,46 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
             cancellationToken: cancellationToken);
 
         return await _connection.QueryFirstOrDefaultAsync<User>(command);
+    }
+
+    public async Task<IReadOnlyList<UserSearchDto>> SearchAssignableUsersAsync(
+        Guid boardId,
+        string searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT TOP 10
+                UserId,
+                FullName,
+                Email,
+                AvatarUrl
+            FROM 
+                Users
+            WHERE 
+                Email LIKE @SearchTerm + '%'
+                AND UserId NOT IN (
+                    SELECT 
+                        UserId 
+                    FROM 
+                        BoardMembers 
+                    WHERE 
+                        BoardId = @BoardId
+                )
+            ORDER BY 
+                Email;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                SearchTerm = searchTerm
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var users = await _connection.QueryAsync<UserSearchDto>(command);
+
+        return users.ToList().AsReadOnly();
     }
 }
