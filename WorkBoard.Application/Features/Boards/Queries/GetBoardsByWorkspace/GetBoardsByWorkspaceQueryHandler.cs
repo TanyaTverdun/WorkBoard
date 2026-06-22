@@ -36,9 +36,9 @@ public class GetBoardsByWorkspaceQueryHandler
         }
 
         var isWorkspaceMember = await _workspaceMemberRepository.IsMemberAsync(
-        request.WorkspaceId,
-        userId.Value,
-        cancellationToken);
+            request.WorkspaceId,
+            userId.Value,
+            cancellationToken);
 
         if (!isWorkspaceMember)
         {
