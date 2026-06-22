@@ -59,6 +59,8 @@ public class GetBoardMembersQueryHandler
             m.User.Id,
             m.User.FullName ?? "Unknown",
             InitialGenerator.Generate(m.User.FullName),
+            m.User.Email,
+            m.User.AvatarUrl,
             m.Member.UserRole
         )).ToList().AsReadOnly();
     }

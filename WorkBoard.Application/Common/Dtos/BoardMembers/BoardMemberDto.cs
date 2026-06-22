@@ -6,4 +6,6 @@ public record BoardMemberDto(
     Guid UserId,
     string FullName,
     string Initials,
+    string Email,
+    string? AvatarUrl,
     BoardRole UserRole);
