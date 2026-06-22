@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Common.Dtos.BoardMembers;
+using WorkBoard.Application.Features.Boards.Commands.AddBoardMember;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
 using WorkBoard.Application.Features.Boards.Commands.DeleteBoard;
 using WorkBoard.Application.Features.Boards.Commands.UpdateBoard;
+using WorkBoard.Application.Features.Boards.Commands.UpdateMemberRole;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardById;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardMembers;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
@@ -257,5 +259,123 @@ public class BoardsController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Updates the role of a specific member within a board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board
+    /// </param>
+    /// <param name="userId">
+    /// The unique identifier of the target user whose role is being updated
+    /// </param>
+    /// <param name="request">
+    /// The object containing the new role for the member
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// An empty OK response if the update was successful
+    /// </returns>
+    /// <response code="200">
+    /// The member's role was successfully updated
+    /// </response>
+    /// <response code="400">
+    /// The request data is invalid
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// The user does not have permission to change roles
+    /// </response>
+    /// <response code="404">
+    /// The specified board or member was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpPatch("{boardId:guid}/members/{userId:guid}/role")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateMemberRole(
+        Guid boardId,
+        Guid userId,
+        [FromBody] UpdateRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateMemberRoleCommand(
+            boardId, 
+            userId, 
+            request.NewRole);
+
+        await _mediator.Send(
+            command, 
+            cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Adds a new member to the specified board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board
+    /// </param>
+    /// <param name="request">
+    /// The object containing the user ID and the role to be assigned
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// An empty OK response if the member was successfully added
+    /// </returns>
+    /// <response code="200">
+    /// The member was successfully added to the board
+    /// </response>
+    /// <response code="400">
+    /// The request data is invalid, or the user is already a member of the board
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// The user does not have permission to add members to this board
+    /// </response>
+    /// <response code="404">
+    /// The specified board was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpPost("{boardId:guid}/members")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddBoardMember(
+        Guid boardId,
+        [FromBody] AddMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddBoardMemberCommand(
+            boardId,
+            request.UserId,
+            request.Role);
+
+        await _mediator.Send(
+            command, 
+            cancellationToken);
+
+        return Ok();
     }
 }      
