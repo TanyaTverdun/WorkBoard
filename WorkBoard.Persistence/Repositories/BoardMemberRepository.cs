@@ -125,7 +125,10 @@ public class BoardMemberRepository
 
         var command = new CommandDefinition(
             sql,
-            new { BoardId = boardId },
+            new 
+            { 
+                BoardId = boardId 
+            },
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
@@ -167,7 +170,7 @@ public class BoardMemberRepository
         return await _connection.ExecuteAsync(command);
     }
 
-    public async Task AddAsync(
+    public async Task AddMemberAsync(
         Guid boardId,
         Guid userId,
         BoardRole role,

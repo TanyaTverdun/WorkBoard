@@ -33,7 +33,7 @@ public interface IBoardMemberRepository
         BoardRole newRole,
         CancellationToken cancellationToken = default);
 
-    Task AddAsync(
+    Task AddMemberAsync(
         Guid boardId,
         Guid userId,
         BoardRole role,
