@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
+using WorkBoard.Application.Common.Dtos.BoardMembers;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
 using WorkBoard.Application.Features.Boards.Commands.DeleteBoard;
 using WorkBoard.Application.Features.Boards.Commands.UpdateBoard;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardById;
+using WorkBoard.Application.Features.Boards.Queries.GetBoardMembers;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -211,43 +213,44 @@ public class BoardsController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a specific board by its unique identifier
+    /// Gets all members of a specific board
     /// </summary>
     /// <param name="boardId">
-    /// The unique identifier of the board to retrieve
+    /// The unique identifier of the board to get members for
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token to cancel the operation
     /// </param>
     /// <returns>
-    /// The details of the requested board
+    /// A list of board members with their details and roles
     /// </returns>
     /// <response code="200">
-    /// The board details were successfully retrieved
+    /// The list of board members was successfully retrieved
     /// </response>
     /// <response code="401">
-    /// The user is not authenticated within the system
+    /// The user is not authenticated
     /// </response>
     /// <response code="403">
-    /// The user does not have access to this board
+    /// The user does not belong to this board
     /// </response>
     /// <response code="404">
     /// The specified board was not found
     /// </response>
     /// <response code="500">
-    /// An internal server error occurred while processing the request
+    /// An internal server error occurred
     /// </response>
-    [HttpGet("{boardId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BoardDto))]
+    [HttpGet("{boardId:guid}/members")]
+    [ProducesResponseType(typeof(IReadOnlyList<BoardMemberDto>),
+        StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<BoardDto>> GetBoard(
+    public async Task<IActionResult> GetBoardMembers(
         Guid boardId,
         CancellationToken cancellationToken)
     {
-        var query = new GetBoardByIdQuery(boardId);
+        var query = new GetBoardMembersQuery(boardId);
 
         var result = await _mediator.Send(
             query, 
