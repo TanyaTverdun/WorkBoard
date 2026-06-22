@@ -38,4 +38,9 @@ public interface IBoardMemberRepository
         Guid userId,
         BoardRole role,
         CancellationToken cancellationToken = default);
+
+    Task<int> RemoveAsync(
+        Guid boardId,
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

@@ -199,4 +199,29 @@ public class BoardMemberRepository
 
         await _connection.ExecuteAsync(command);
     }
+
+    public async Task<int> RemoveAsync(
+        Guid boardId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            DELETE FROM 
+                BoardMembers 
+            WHERE 
+                BoardId = @BoardId AND 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                UserId = userId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
+    }
 }
