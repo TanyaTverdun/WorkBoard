@@ -200,7 +200,7 @@ public class BoardMemberRepository
         await _connection.ExecuteAsync(command);
     }
 
-    public async Task<int> RemoveAsync(
+    public async Task<int> RemoveMemberAsync(
         Guid boardId,
         Guid userId,
         CancellationToken cancellationToken = default)
