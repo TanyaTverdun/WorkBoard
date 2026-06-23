@@ -7,7 +7,8 @@ using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Persistence.Repositories;
 
-public class SectionRepository : GenericRepository<Section, Guid>, ISectionRepository
+public class SectionRepository 
+    : GenericRepository<Section, Guid>, ISectionRepository
 {
     public SectionRepository(IDbConnectionFactory connectionFactory)
         : base(connectionFactory)

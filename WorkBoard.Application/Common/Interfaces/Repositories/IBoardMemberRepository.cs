@@ -1,4 +1,8 @@
-﻿using WorkBoard.Domain.Entities;
+﻿using MediatR;
+using WorkBoard.Application.Common.Dtos.BoardMembers;
+using WorkBoard.Application.Common.Dtos.Users;
+using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -17,5 +21,26 @@ public interface IBoardMemberRepository
     Task<BoardMember?> GetMembershipAsync(
         Guid userId, 
         Guid boardId, 
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BoardMemberWithUserDto>> GetMembersByBoardAsync(
+        Guid boardId,
+        CancellationToken cancellationToken = default);
+
+    Task<int> UpdateRoleAsync(
+        Guid boardId,
+        Guid userId,
+        BoardRole newRole,
+        CancellationToken cancellationToken = default);
+
+    Task AddMemberAsync(
+        Guid boardId,
+        Guid userId,
+        BoardRole role,
+        CancellationToken cancellationToken = default);
+
+    Task<int> RemoveMemberAsync(
+        Guid boardId,
+        Guid userId,
         CancellationToken cancellationToken = default);
 }

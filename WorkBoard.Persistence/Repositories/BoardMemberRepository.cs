@@ -1,8 +1,10 @@
 ﻿using Dapper;
 using System.Data;
+using WorkBoard.Application.Common.Dtos.BoardMembers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
@@ -99,5 +101,127 @@ public class BoardMemberRepository
             cancellationToken: cancellationToken);
 
         return await _connection.QueryFirstOrDefaultAsync<BoardMember>(command);
+    }
+
+    public async Task<IReadOnlyList<BoardMemberWithUserDto>> GetMembersByBoardAsync(
+        Guid boardId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                bm.UserId, 
+                bm.BoardId, 
+                bm.UserRole,
+                u.UserId AS Id, 
+                u.FullName, 
+                u.Email, 
+                u.AvatarUrl 
+            FROM 
+                BoardMembers bm
+            JOIN 
+                Users u ON bm.UserId = u.UserId
+            WHERE 
+                bm.BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                BoardId = boardId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var result = await _connection
+            .QueryAsync<BoardMember, User, BoardMemberWithUserDto>(
+                command,
+                (member, user) => new BoardMemberWithUserDto(member, user),
+                splitOn: "Id");
+
+        return result.ToList().AsReadOnly();
+    }
+
+    public async Task<int> UpdateRoleAsync(
+        Guid boardId,
+        Guid userId,
+        BoardRole newRole,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                BoardMembers
+            SET 
+                UserRole = @NewRole
+            WHERE 
+                BoardId = @BoardId 
+                AND UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                UserId = userId,
+                NewRole = (int)newRole
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
+    }
+
+    public async Task AddMemberAsync(
+        Guid boardId,
+        Guid userId,
+        BoardRole role,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            INSERT INTO BoardMembers (
+                BoardId, 
+                UserId, 
+                UserRole)
+            VALUES (
+                @BoardId, 
+                @UserId, 
+                @UserRole);";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                UserId = userId,
+                UserRole = (int)role
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<int> RemoveMemberAsync(
+        Guid boardId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            DELETE FROM 
+                BoardMembers 
+            WHERE 
+                BoardId = @BoardId AND 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                UserId = userId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
     }
 }
