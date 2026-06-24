@@ -1,13 +1,9 @@
 ﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
-using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Boards.Queries.SearchAssignableUsers;
 
