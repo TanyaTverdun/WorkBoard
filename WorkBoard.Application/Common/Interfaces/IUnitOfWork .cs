@@ -10,6 +10,7 @@ public interface IUnitOfWork : IDisposable
     IBoardRepository BoardRepository { get; }
     IBoardMemberRepository BoardMemberRepository { get; }
     ISectionRepository SectionRepository { get; }
+    ICardRepository CardRepository { get; }
 
     void Commit();
     void Rollback();
