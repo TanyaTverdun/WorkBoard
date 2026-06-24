@@ -1,6 +1,8 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Dtos.Sections;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Sections.Commands.UpdateSectionName;
@@ -10,13 +12,16 @@ public class UpdateSectionNameCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
 
     public UpdateSectionNameCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -67,6 +72,15 @@ public class UpdateSectionNameCommandHandler
             uow.Rollback();
             throw;
         }
+
+        var renameDto = new SectionRenameDto(
+            request.SectionId, 
+            request.Name);
+
+        await _boardNotificationService.SendSectionRenamedAsync(
+            request.BoardId, 
+            renameDto, 
+            cancellationToken);
 
         return Unit.Value;
     }

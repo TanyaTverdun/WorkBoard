@@ -1,5 +1,6 @@
 ﻿using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Dtos.Section;
+using WorkBoard.Application.Common.Dtos.Sections;
 
 namespace WorkBoard.Application.Common.Interfaces.Notification;
 
@@ -13,5 +14,10 @@ public interface IBoardNotificationService
     Task SendSectionCreatedAsync(
         Guid boardId, 
         SectionDto section, 
+        CancellationToken cancellationToken = default);
+
+    Task SendSectionRenamedAsync(
+        Guid boardId, 
+        SectionRenameDto section, 
         CancellationToken cancellationToken = default);
 }
