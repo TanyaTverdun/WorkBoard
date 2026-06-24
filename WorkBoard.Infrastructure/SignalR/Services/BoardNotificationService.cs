@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Infrastructure.SignalR.Hubs;
 
@@ -21,5 +22,14 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync("CardCreated", card, cancellationToken);
+    }
+
+    public async Task SendSectionCreatedAsync(
+        Guid boardId, 
+        SectionDto section, 
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync("SectionCreated", section, cancellationToken);
     }
 }

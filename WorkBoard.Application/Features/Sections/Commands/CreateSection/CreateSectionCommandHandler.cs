@@ -1,6 +1,9 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
@@ -10,13 +13,19 @@ public class CreateSectionCommandHandler : IRequestHandler<CreateSectionCommand,
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
+    private readonly IMapper _mapper;
 
     public CreateSectionCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService,
+        IMapper mapper)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
+        _mapper = mapper;
     }
 
     public async Task<Guid> Handle(
@@ -74,6 +83,13 @@ public class CreateSectionCommandHandler : IRequestHandler<CreateSectionCommand,
             uow.Rollback();
             throw;
         }
+
+        var sectionDto = _mapper.Map<SectionDto>(section);
+
+        await _boardNotificationService.SendSectionCreatedAsync(
+            request.BoardId,
+            sectionDto,
+            cancellationToken);
 
         return sectionId;
     }

@@ -17,6 +17,7 @@ public class CreateCardCommandHandler
     private readonly IBoardNotificationService _boardNotificationService;
     private readonly IMapper _mapper;
 
+
     public CreateCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
