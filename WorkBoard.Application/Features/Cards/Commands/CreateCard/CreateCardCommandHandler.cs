@@ -1,7 +1,9 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
@@ -12,13 +14,19 @@ public class CreateCardCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
+    private readonly IMapper _mapper;
 
     public CreateCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService,
+        IMapper mapper)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
+        _mapper = mapper;
     }
 
     public async Task<CardDto> Handle(
@@ -69,14 +77,13 @@ public class CreateCardCommandHandler
             throw;
         }
 
-        return new CardDto
-        {
-            Id = newCard.Id,
-            SectionId = newCard.SectionId,
-            Title = newCard.Title,
-            Description = newCard.Description,
-            DueDate = newCard.DueDate,
-            Position = newCard.Position
-        };
+        var cardDto = _mapper.Map<CardDto>(newCard);
+
+        await _boardNotificationService.SendCardCreatedAsync(
+            section.BoardId, 
+            cardDto, 
+            cancellationToken);
+
+        return cardDto;
     }
 }
