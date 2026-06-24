@@ -54,13 +54,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseCors(WorkBoard.WebAPI.DependencyInjection.BlazorWasmPolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.MapHub<BoardHub>("/hubs/board");
 
 app.Run();
