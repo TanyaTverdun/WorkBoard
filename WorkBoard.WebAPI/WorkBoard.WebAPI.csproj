@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Hubs\**" />
+    <Content Remove="Hubs\**" />
+    <EmbeddedResource Remove="Hubs\**" />
+    <None Remove="Hubs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageReference Include="Microsoft.Identity.Web" Version="4.10.0" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
@@ -17,11 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
     <ProjectReference Include="..\WorkBoard.Database\WorkBoard.Database.csproj" />
+    <ProjectReference Include="..\WorkBoard.Infrastructure\WorkBoard.Infrastructure.csproj" />
     <ProjectReference Include="..\WorkBoard.Persistence\WorkBoard.Persistence.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Hubs\" />
   </ItemGroup>
 
 </Project>
