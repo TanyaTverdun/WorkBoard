@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using Dapper;
+using System.Data;
+using System.Transactions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -17,5 +19,45 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
         IDbTransaction transaction)
         : base(connection, transaction)
     {
+    }
+
+    public async Task<IReadOnlyList<Card>> GetCardsByBoardIdAsync(
+        Guid boardId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                c.CardId AS Id,
+                c.SectionId,
+                c.Title,
+                c.Description,
+                c.DueDate,
+                c.Position,
+                c.CreatedAt,
+                c.CreatedBy,
+                c.UpdatedAt,
+                c.UpdatedBy
+            FROM 
+                Cards c
+            JOIN 
+                Sections s 
+                ON c.SectionId = s.SectionId
+            WHERE 
+                s.BoardId = @BoardId
+            ORDER BY 
+                c.Position ASC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                BoardId = boardId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var cards = await _connection.QueryAsync<Card>(command);
+
+        return cards.ToList().AsReadOnly();
     }
 }
