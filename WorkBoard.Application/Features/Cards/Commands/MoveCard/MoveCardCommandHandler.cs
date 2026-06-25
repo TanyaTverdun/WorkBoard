@@ -78,6 +78,13 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
             throw;
         }
 
+        await _boardNotificationService.SendCardMovedAsync(
+            request.BoardId,
+            request.CardId,
+            request.NewSectionId,
+            request.NewPosition,
+            cancellationToken);
+
         return Unit.Value;
     }
 }

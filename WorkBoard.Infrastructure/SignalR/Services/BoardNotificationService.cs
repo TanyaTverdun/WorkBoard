@@ -97,4 +97,20 @@ public class BoardNotificationService : IBoardNotificationService
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync("MemberRemoved", userId, cancellationToken);
     }
+
+    public async Task SendCardMovedAsync(
+        Guid boardId,
+        Guid cardId,
+        Guid newSectionId,
+        double newPosition,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(
+                "CardMoved", 
+                cardId, 
+                newSectionId, 
+                newPosition, 
+                cancellationToken);
+    }
 }

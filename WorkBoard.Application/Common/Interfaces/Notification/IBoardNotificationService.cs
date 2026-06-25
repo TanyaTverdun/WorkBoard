@@ -43,4 +43,11 @@ public interface IBoardNotificationService
         Guid boardId, 
         Guid userId, 
         CancellationToken cancellationToken = default);
+
+    Task SendCardMovedAsync(
+        Guid boardId,
+        Guid cardId,
+        Guid newSectionId,
+        double newPosition,
+        CancellationToken cancellationToken = default);
 }
