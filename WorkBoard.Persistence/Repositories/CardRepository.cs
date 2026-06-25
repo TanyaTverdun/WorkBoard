@@ -60,4 +60,34 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
 
         return cards.ToList().AsReadOnly();
     }
+
+    public async Task UpdateCardPositionAsync(
+        Guid cardId,
+        Guid sectionId,
+        double position,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                Cards 
+            SET 
+                SectionId = @SectionId, 
+                Position = @Position,
+                UpdatedAt = CURRENT_TIMESTAMP
+            WHERE 
+                CardId = @CardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                CardId = cardId,
+                SectionId = sectionId,
+                Position = position
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
 }
