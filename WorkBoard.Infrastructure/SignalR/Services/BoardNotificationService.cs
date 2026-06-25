@@ -45,4 +45,13 @@ public class BoardNotificationService : IBoardNotificationService
             section,
             cancellationToken);
     }
+
+    public async Task SendSectionDeletedAsync(
+        Guid boardId, 
+        Guid sectionId, 
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync("SectionDeleted", sectionId, cancellationToken);
+    }
 }

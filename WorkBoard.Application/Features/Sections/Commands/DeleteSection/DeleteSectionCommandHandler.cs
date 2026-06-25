@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Sections.Commands.DeleteSection;
@@ -10,13 +12,16 @@ public class DeleteSectionCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
 
     public DeleteSectionCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -63,6 +68,10 @@ public class DeleteSectionCommandHandler
             uow.Rollback();
             throw;
         }
+
+        await _boardNotificationService.SendSectionDeletedAsync(
+            section.BoardId, 
+            section.Id);
 
         return Unit.Value;
     }

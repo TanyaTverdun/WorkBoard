@@ -20,4 +20,9 @@ public interface IBoardNotificationService
         Guid boardId, 
         SectionRenameDto section, 
         CancellationToken cancellationToken = default);
+
+    Task SendSectionDeletedAsync(
+        Guid boardId, 
+        Guid sectionId, 
+        CancellationToken cancellationToken = default);
 }
