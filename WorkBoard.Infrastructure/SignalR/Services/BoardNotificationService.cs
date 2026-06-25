@@ -54,4 +54,20 @@ public class BoardNotificationService : IBoardNotificationService
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync("SectionDeleted", sectionId, cancellationToken);
     }
+
+    public async Task SendSectionMovedAsync(
+        Guid boardId, 
+        Guid sectionId, 
+        double newPosition, 
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(
+            "SectionMoved", 
+            new { 
+                SectionId = sectionId, 
+                NewPosition = newPosition 
+            }, 
+            cancellationToken);
+    }
 }

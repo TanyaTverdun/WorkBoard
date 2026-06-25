@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Sections.Commands.MoveSection;
@@ -10,13 +11,17 @@ public class MoveSectionCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
+
 
     public MoveSectionCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -62,6 +67,12 @@ public class MoveSectionCommandHandler
             uow.Rollback();
             throw;
         }
+
+        await _boardNotificationService.SendSectionMovedAsync(
+            section.BoardId,
+            section.Id,
+            section.Position,
+            cancellationToken);
 
         return Unit.Value;
     }

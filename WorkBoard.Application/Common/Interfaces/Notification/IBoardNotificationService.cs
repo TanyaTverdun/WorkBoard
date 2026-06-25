@@ -25,4 +25,10 @@ public interface IBoardNotificationService
         Guid boardId, 
         Guid sectionId, 
         CancellationToken cancellationToken = default);
+
+    Task SendSectionMovedAsync(
+        Guid boardId, 
+        Guid sectionId, 
+        double newPosition, 
+        CancellationToken cancellationToken = default);
 }
