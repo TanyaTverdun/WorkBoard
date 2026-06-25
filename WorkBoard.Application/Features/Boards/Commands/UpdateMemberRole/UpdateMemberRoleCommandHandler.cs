@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
-using WorkBoard.Application.Common.Interfaces.Repositories;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Boards.Commands.UpdateMemberRole;
@@ -11,13 +11,16 @@ public class UpdateMemberRoleCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
 
     public UpdateMemberRoleCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -81,6 +84,11 @@ public class UpdateMemberRoleCommandHandler
             uow.Rollback();
             throw;
         }
+
+        await _boardNotificationService.SendMemberRoleUpdatedAsync(
+            request.BoardId, 
+            request.TargetUserId, 
+            request.NewRole);
 
         return Unit.Value;
     }

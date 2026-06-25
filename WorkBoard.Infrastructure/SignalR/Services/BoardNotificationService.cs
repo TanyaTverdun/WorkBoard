@@ -3,6 +3,7 @@ using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Enums;
 using WorkBoard.Infrastructure.SignalR.Hubs;
 
 namespace WorkBoard.Infrastructure.SignalR.Services;
@@ -67,6 +68,23 @@ public class BoardNotificationService : IBoardNotificationService
             new { 
                 SectionId = sectionId, 
                 NewPosition = newPosition 
+            }, 
+            cancellationToken);
+    }
+
+    public async Task SendMemberRoleUpdatedAsync(
+        Guid boardId, 
+        Guid userId, 
+        BoardRole newRole,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(
+            "MemberRoleUpdated", 
+            new 
+            { 
+                UserId = userId, 
+                NewRole = newRole 
             }, 
             cancellationToken);
     }
