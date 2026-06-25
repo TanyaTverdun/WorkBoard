@@ -39,4 +39,8 @@ public interface IBoardNotificationService
         BoardRole newRole,
         CancellationToken cancellationToken = default);
 
+    Task SendMemberRemovedAsync(
+        Guid boardId, 
+        Guid userId, 
+        CancellationToken cancellationToken = default);
 }

@@ -88,4 +88,13 @@ public class BoardNotificationService : IBoardNotificationService
             }, 
             cancellationToken);
     }
+
+    public async Task SendMemberRemovedAsync(
+        Guid boardId, 
+        Guid userId, 
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync("MemberRemoved", userId, cancellationToken);
+    }
 }
