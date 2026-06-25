@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
+using WorkBoard.Application.Features.Cards.Commands.MoveCard;
 using WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -120,5 +121,59 @@ public class CardsController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Moves a card to a new section or changes its position
+    /// </summary>
+    /// <param name="boardId">
+    /// The ID of the board
+    /// </param>
+    /// <param name="cardId">
+    /// The ID of the card to move
+    /// </param>
+    /// <param name="request">
+    /// The new section ID and position
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="200">
+    /// Card moved successfully
+    /// </response>
+    /// <response code="400">
+    /// Invalid data
+    /// </response>
+    /// <response code="403">
+    /// Forbidden
+    /// </response>
+    /// <response code="404">
+    /// Card or Section not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpPatch("/api/boards/{boardId:guid}/cards/{cardId:guid}/move")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> MoveCard(
+        [FromRoute] Guid boardId,
+        [FromRoute] Guid cardId,
+        [FromBody] MoveCardRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new MoveCardCommand(
+            boardId,
+            cardId,
+            request.NewSectionId,
+            request.NewPosition
+        );
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok();
     }
 }
