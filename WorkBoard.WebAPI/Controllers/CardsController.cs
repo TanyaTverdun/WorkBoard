@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
-using WorkBoard.Application.Features.Cards.Commands.UpdateCardDetails;
+using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
 using WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -176,5 +176,54 @@ public class CardsController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return Ok();
+    }
+
+    /// <summary>
+    /// Updates the title of a card
+    /// </summary>
+    /// <param name="boardId">
+    /// The ID of the board
+    /// </param>
+    /// <param name="cardId">
+    /// The ID of the card to update
+    /// </param>
+    /// <param name="request">
+    /// The new title
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="204">
+    /// Title updated successfully
+    /// </response>
+    /// <response code="400">
+    /// Invalid data
+    /// </response>
+    /// <response code="403">
+    /// Forbidden
+    /// </response>
+    /// <response code="404">
+    /// Card or Board not found
+    /// </response>
+    /// <response code="500">
+    /// Internal server error
+    /// </response>
+    [HttpPut("/api/boards/{boardId:guid}/cards/{cardId:guid}/title")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateCardTitle(
+        [FromRoute] Guid boardId,
+        [FromRoute] Guid cardId,
+        [FromBody] UpdateCardTitleRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateCardTitleCommand(boardId, cardId, request.Title);
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
