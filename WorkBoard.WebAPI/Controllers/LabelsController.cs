@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Features.Labels.Commands.CreateLabel;
+using WorkBoard.Application.Features.Labels.Queries.GetLabelsByBoard;
 
 namespace WorkBoard.WebAPI.Controllers;
 
@@ -73,6 +74,51 @@ public class LabelsController : ControllerBase
 
         var result = await _mediator.Send(
             command,
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Gets all labels available on a specific board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// A list of all labels belonging to the specified board
+    /// </returns>
+    /// <response code="200">
+    /// Returns the list of labels successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to access this board
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpGet("/api/boards/{boardId:guid}/labels")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<LabelDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetLabelsByBoard(
+        [FromRoute] Guid boardId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetLabelsByBoardQuery
+        {
+            BoardId = boardId
+        };
+
+        var result = await _mediator.Send(
+            query,
             cancellationToken);
 
         return Ok(result);
