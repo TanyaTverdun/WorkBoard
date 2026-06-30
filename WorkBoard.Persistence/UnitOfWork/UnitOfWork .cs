@@ -16,6 +16,7 @@ public class UnitOfWork : IUnitOfWork
     private IBoardRepository? _boardRepository;
     private IBoardMemberRepository? _boardMemberRepository;
     private ISectionRepository? _sectionRepository;
+    private ICardRepository? _cardRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -56,6 +57,11 @@ public class UnitOfWork : IUnitOfWork
 
     public ISectionRepository SectionRepository =>
         _sectionRepository ??= new SectionRepository(
+            _sqlConnection,
+            _transaction);
+
+    public ICardRepository CardRepository =>
+        _cardRepository ??= new CardRepository(
             _sqlConnection,
             _transaction);
 

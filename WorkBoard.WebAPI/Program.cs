@@ -2,6 +2,8 @@ using Microsoft.Identity.Web;
 using WorkBoard.Application;
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
+using WorkBoard.Infrastructure;
+using WorkBoard.Infrastructure.SignalR.Hubs;
 using WorkBoard.Persistence;
 using WorkBoard.WebAPI;
 using WorkBoard.WebAPI.Constants;
@@ -27,6 +29,7 @@ builder.Services.AddMicrosoftIdentityWebApiAuthentication(
 builder.Services.AddWebApiServices(builder.Configuration);
 builder.Services.AddPersistance();
 builder.Services.AddApplication();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -51,11 +54,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseCors(WorkBoard.WebAPI.DependencyInjection.BlazorWasmPolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<BoardHub>("/hubs/board");
 
 app.Run();

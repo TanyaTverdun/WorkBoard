@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Boards.Commands.RemoveBoardMember;
@@ -10,13 +11,16 @@ public class RemoveBoardMemberCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _boardNotificationService;
 
     public RemoveBoardMemberCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService boardNotificationService  )
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _boardNotificationService = boardNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -70,6 +74,10 @@ public class RemoveBoardMemberCommandHandler
             uow.Rollback();
             throw;
         }
+
+        await _boardNotificationService.SendMemberRemovedAsync(
+            request.BoardId, 
+            request.TargetUserId);
 
         return Unit.Value;
     }

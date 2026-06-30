@@ -1,22 +1,24 @@
 ﻿using AutoMapper;
 using MediatR;
-using WorkBoard.Application.Common.Dtos.Section;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
-namespace WorkBoard.Application.Features.Sections.Commands.CreateSection;
+namespace WorkBoard.Application.Features.Cards.Commands.CreateCard;
 
-public class CreateSectionCommandHandler : IRequestHandler<CreateSectionCommand, Guid>
+public class CreateCardCommandHandler 
+    : IRequestHandler<CreateCardCommand, CardDto>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
     private readonly IMapper _mapper;
 
-    public CreateSectionCommandHandler(
+
+    public CreateCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IBoardNotificationService boardNotificationService,
@@ -28,8 +30,8 @@ public class CreateSectionCommandHandler : IRequestHandler<CreateSectionCommand,
         _mapper = mapper;
     }
 
-    public async Task<Guid> Handle(
-        CreateSectionCommand request,
+    public async Task<CardDto> Handle(
+        CreateCardCommand request,
         CancellationToken cancellationToken)
     {
         var currentUserId = _userContext.UserId
@@ -38,44 +40,36 @@ public class CreateSectionCommandHandler : IRequestHandler<CreateSectionCommand,
 
         using var uow = _unitOfWorkFactory.Create();
 
+        var section = await uow.SectionRepository.GetByIdAsync(
+            request.SectionId,
+            cancellationToken)
+                ?? throw new NotFoundException(
+                    $"Section with ID {request.SectionId} was not found.");
+
         var membership = await uow.BoardMemberRepository.GetMembershipAsync(
             currentUserId,
-            request.BoardId,
+            section.BoardId,
             cancellationToken);
 
         if (membership == null || membership.UserRole == BoardRole.Observer)
         {
             throw new ForbiddenAccessException(
-                "You do not have permission to create sections on this board.");
+                "You do not have permission to create cards on this board.");
         }
 
-        var existingSections = await uow.SectionRepository.GetByBoardIdAsync(
-            request.BoardId,
-            currentUserId,
-            cancellationToken);
-
-        double nextPosition = existingSections.Count > 0
-            ? existingSections.Max(s => s.Position) + 1.0
-            : 1.0;
-
-        var sectionId = Guid.NewGuid();
-
-        var section = new Section
+        var newCard = new Card
         {
-            Id = sectionId,
-            BoardId = request.BoardId,
-            Name = request.Name,
-            Position = nextPosition,
+            Id = Guid.NewGuid(),
+            SectionId = request.SectionId,
+            Title = request.Title,
+            Position = request.Position,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = currentUserId
         };
 
         try
         {
-            await uow.SectionRepository.CreateAsync(
-                section,
-                cancellationToken);
-
+            await uow.CardRepository.CreateAsync(newCard);
             uow.Commit();
         }
         catch
@@ -84,13 +78,13 @@ public class CreateSectionCommandHandler : IRequestHandler<CreateSectionCommand,
             throw;
         }
 
-        var sectionDto = _mapper.Map<SectionDto>(section);
+        var cardDto = _mapper.Map<CardDto>(newCard);
 
-        await _boardNotificationService.SendSectionCreatedAsync(
-            request.BoardId,
-            sectionDto,
+        await _boardNotificationService.SendCardCreatedAsync(
+            section.BoardId, 
+            cardDto, 
             cancellationToken);
 
-        return sectionId;
+        return cardDto;
     }
 }

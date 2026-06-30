@@ -2,19 +2,17 @@
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
-using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
-namespace WorkBoard.Application.Features.Sections.Commands.DeleteSection;
+namespace WorkBoard.Application.Features.Cards.Commands.MoveCard;
 
-public class DeleteSectionCommandHandler 
-    : IRequestHandler<DeleteSectionCommand, Unit>
+public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
 
-    public DeleteSectionCommandHandler(
+    public MoveCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IBoardNotificationService boardNotificationService)
@@ -25,7 +23,7 @@ public class DeleteSectionCommandHandler
     }
 
     public async Task<Unit> Handle(
-        DeleteSectionCommand request,
+        MoveCardCommand request, 
         CancellationToken cancellationToken)
     {
         var currentUserId = _userContext.UserId
@@ -39,26 +37,37 @@ public class DeleteSectionCommandHandler
             request.BoardId,
             cancellationToken);
 
-        if (membership == null || membership.UserRole == BoardRole.Observer)
+        if (membership == null || 
+            membership.UserRole == BoardRole.Observer)
         {
             throw new ForbiddenAccessException(
-                "You do not have permission to delete sections on this board.");
+                "You do not have permission to move cards on this board.");
         }
 
-        var section = await uow.SectionRepository.GetByIdAsync(
-            request.SectionId, 
+        var card = await uow.CardRepository.GetByIdAsync(
+            request.CardId, 
             cancellationToken);
 
-        if (section == null || section.BoardId != request.BoardId)
+        if (card == null)
         {
             throw new NotFoundException(
-                $"Section with ID {request.SectionId} was not found on this board.");
+                $"Card with ID {request.CardId} was not found.");
+        }
+
+        var targetSection = await uow.SectionRepository.GetByIdAsync(request.NewSectionId, cancellationToken);
+        if (targetSection == null || 
+            targetSection.BoardId != request.BoardId)
+        {
+            throw new NotFoundException(
+                $"Section with ID {request.NewSectionId} was not found on this board.");
         }
 
         try
         {
-            await uow.SectionRepository.DeleteAsync(
-                section.Id, 
+            await uow.CardRepository.UpdateCardPositionAsync(
+                request.CardId,
+                request.NewSectionId,
+                request.NewPosition,
                 cancellationToken);
 
             uow.Commit();
@@ -69,9 +78,12 @@ public class DeleteSectionCommandHandler
             throw;
         }
 
-        await _boardNotificationService.SendSectionDeletedAsync(
-            section.BoardId, 
-            section.Id);
+        await _boardNotificationService.SendCardMovedAsync(
+            request.BoardId,
+            request.CardId,
+            request.NewSectionId,
+            request.NewPosition,
+            cancellationToken);
 
         return Unit.Value;
     }
