@@ -2,7 +2,7 @@ CREATE TABLE [Cards] (
     [CardId]      UNIQUEIDENTIFIER   NOT NULL PRIMARY KEY,
     [SectionId]   UNIQUEIDENTIFIER   NOT NULL,
     [Title]       NVARCHAR(100)      NOT NULL,
-    [Description] NVARCHAR(MAX)      NULL DEFAULT NULL,
+    [Description] NVARCHAR(4000)     NULL DEFAULT NULL,
     [DueDate]     DATETIME2          NULL DEFAULT NULL,
     [Position]    FLOAT              NOT NULL,
     [CreatedAt]   DATETIME2          NOT NULL,
