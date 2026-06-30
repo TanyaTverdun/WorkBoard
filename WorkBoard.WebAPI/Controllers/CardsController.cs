@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
+using WorkBoard.Application.Features.Cards.Commands.UpdateCardDescription;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
 using WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
 
@@ -221,6 +222,55 @@ public class CardsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new UpdateCardTitleCommand(boardId, cardId, request.Title);
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Updates the description of a card
+    /// </summary>
+    /// <param name="boardId">
+    /// The ID of the board
+    /// </param>
+    /// <param name="cardId">
+    /// The ID of the card to update
+    /// </param>
+    /// <param name="request">
+    /// The new description
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="204">
+    /// Description updated successfully
+    /// </response>
+    /// <response code="400">
+    /// Invalid data
+    /// </response>
+    /// <response code="403">
+    /// Forbidden
+    /// </response>
+    /// <response code="404">
+    /// Card or Board not found
+    /// </response>
+    /// <response code="500">
+    /// Internal server error
+    /// </response>
+    [HttpPut("/api/boards/{boardId:guid}/cards/{cardId:guid}/description")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateCardDescription(
+        [FromRoute] Guid boardId,
+        [FromRoute] Guid cardId,
+        [FromBody] UpdateCardDescriptionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateCardDescriptionCommand(boardId, cardId, request.Description);
 
         await _mediator.Send(command, cancellationToken);
 
