@@ -1,4 +1,5 @@
-﻿using WorkBoard.Domain.Entities;
+﻿using WorkBoard.Application.Common.Dtos.Labels;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -10,4 +11,7 @@ public interface ILabelRepository
         string name,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Label>> GetByBoardIdAsync(
+        Guid boardId,
+        CancellationToken cancellationToken = default);
 }
