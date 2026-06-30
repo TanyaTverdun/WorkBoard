@@ -4,6 +4,7 @@ using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
+using WorkBoard.Infrastructure.Constants;
 using WorkBoard.Infrastructure.SignalR.Hubs;
 
 namespace WorkBoard.Infrastructure.SignalR.Services;
@@ -23,7 +24,7 @@ public class BoardNotificationService : IBoardNotificationService
         CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients.Group(boardId.ToString())
-            .SendAsync("CardCreated", card, cancellationToken);
+            .SendAsync(BoardHubEvents.CardCreated, card, cancellationToken);
     }
 
     public async Task SendSectionCreatedAsync(
@@ -32,7 +33,7 @@ public class BoardNotificationService : IBoardNotificationService
         CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients.Group(boardId.ToString())
-            .SendAsync("SectionCreated", section, cancellationToken);
+            .SendAsync(BoardHubEvents.SectionCreated, section, cancellationToken);
     }
 
     public async Task SendSectionRenamedAsync(
@@ -42,7 +43,7 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(
-            "SectionRenamed",
+            BoardHubEvents.SectionRenamed,
             section,
             cancellationToken);
     }
@@ -53,7 +54,7 @@ public class BoardNotificationService : IBoardNotificationService
         CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients.Group(boardId.ToString())
-            .SendAsync("SectionDeleted", sectionId, cancellationToken);
+            .SendAsync(BoardHubEvents.SectionDeleted, sectionId, cancellationToken);
     }
 
     public async Task SendSectionMovedAsync(
@@ -64,7 +65,7 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(
-            "SectionMoved", 
+            BoardHubEvents.SectionMoved, 
             new { 
                 SectionId = sectionId, 
                 NewPosition = newPosition 
@@ -80,7 +81,7 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(
-            "MemberRoleUpdated", 
+            BoardHubEvents.MemberRoleUpdated, 
             new 
             { 
                 UserId = userId, 
@@ -95,7 +96,7 @@ public class BoardNotificationService : IBoardNotificationService
         CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients.Group(boardId.ToString())
-            .SendAsync("MemberRemoved", userId, cancellationToken);
+            .SendAsync(BoardHubEvents.MemberRemoved, userId, cancellationToken);
     }
 
     public async Task SendCardMovedAsync(
@@ -107,7 +108,7 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(
-                "CardMoved", 
+                BoardHubEvents.CardMoved, 
                 cardId, 
                 newSectionId, 
                 newPosition, 
