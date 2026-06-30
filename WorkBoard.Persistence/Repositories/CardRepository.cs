@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using System.Data;
-using System.Transactions;
+using System.Text;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -85,6 +85,48 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                 SectionId = sectionId,
                 Position = position
             },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
+
+    public async Task UpdateCardDetailsAsync(
+        Guid cardId,
+        string? title,
+        string? description,
+        bool isDescriptionUpdated,
+        Guid updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        var sqlBuilder = new StringBuilder(@"
+            UPDATE 
+                Cards 
+            SET 
+                UpdatedAt = CURRENT_TIMESTAMP,
+                UpdatedBy = @UpdatedBy");
+
+        var parameters = new DynamicParameters();
+        parameters.Add("CardId", cardId);
+        parameters.Add("UpdatedBy", updatedBy);
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            sqlBuilder.Append(", Title = @Title");
+            parameters.Add("Title", title);
+        }
+
+        if (isDescriptionUpdated)
+        {
+            sqlBuilder.Append(", Description = @Description");
+            parameters.Add("Description", description);
+        }
+
+        sqlBuilder.Append(" WHERE CardId = @CardId;");
+
+        var command = new CommandDefinition(
+            sqlBuilder.ToString(),
+            parameters,
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
