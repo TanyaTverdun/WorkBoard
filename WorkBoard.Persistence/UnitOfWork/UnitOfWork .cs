@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private ICardRepository? _cardRepository;
     private ILabelRepository? _labelRepository;
     private ICardLabelRepository? _cardLabelRepository;
+    private IUserCardRepository? _userCardRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -74,6 +75,11 @@ public class UnitOfWork : IUnitOfWork
 
     public ICardLabelRepository CardLabelRepository =>
         _cardLabelRepository ??= new CardLabelRepository(
+            _sqlConnection,
+            _transaction);
+
+    public IUserCardRepository UserCardRepository =>
+        _userCardRepository ??= new UserCardRepository(
             _sqlConnection,
             _transaction);
 
