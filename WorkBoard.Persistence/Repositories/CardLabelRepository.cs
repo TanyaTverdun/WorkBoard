@@ -99,4 +99,26 @@ public class CardLabelRepository
 
         await _connection.ExecuteAsync(command);
     }
+
+    public async Task RemoveAllByLabelIdAsync(
+        Guid labelId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            DELETE FROM 
+                CardLabels 
+            WHERE 
+                LabelId = @LabelId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                LabelId = labelId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
 }

@@ -18,4 +18,8 @@ public interface ICardLabelRepository : IGenericRepository<CardLabel, (Guid, Gui
         Guid cardId,
         Guid labelId,
         CancellationToken cancellationToken = default);
+
+    Task RemoveAllByLabelIdAsync(
+        Guid labelId,
+        CancellationToken cancellationToken = default);
 }
