@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using System.Data;
-using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -75,6 +74,43 @@ public class LabelRepository : GenericRepository<Label, Guid>, ILabelRepository
             new
             {
                 BoardId = boardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var labels = await _connection.QueryAsync<Label>(command);
+
+        return labels.ToList().AsReadOnly();
+    }
+
+    public async Task<IReadOnlyList<Label>> GetByCardIdAsync(
+        Guid cardId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                l.LabelId AS Id, 
+                l.BoardId, 
+                l.Name, 
+                l.Color,
+                l.CreatedAt,
+                l.CreatedBy,
+                l.UpdatedAt,
+                l.UpdatedBy
+            FROM 
+                Labels l
+            INNER JOIN 
+                CardLabels cl ON l.LabelId = cl.LabelId
+            WHERE 
+                cl.CardId = @CardId
+            ORDER BY 
+                l.CreatedAt ASC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                CardId = cardId
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
