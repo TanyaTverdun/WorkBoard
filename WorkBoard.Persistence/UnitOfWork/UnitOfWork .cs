@@ -67,7 +67,7 @@ public class UnitOfWork : IUnitOfWork
             _sqlConnection,
             _transaction);
 
-    public ILabelRepository labelRepository =>
+    public ILabelRepository LabelRepository =>
         _labelRepository ??= new LabelRepository(
             _sqlConnection,
             _transaction);
