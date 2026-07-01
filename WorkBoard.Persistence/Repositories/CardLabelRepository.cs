@@ -74,4 +74,29 @@ public class CardLabelRepository
 
         return await _connection.ExecuteScalarAsync<bool>(command);
     }
+
+    public async Task RemoveAsync(
+        Guid cardId,
+        Guid labelId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            DELETE FROM 
+                CardLabels 
+            WHERE 
+                CardId = @CardId 
+                AND LabelId = @LabelId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                CardId = cardId,
+                LabelId = labelId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
 }
