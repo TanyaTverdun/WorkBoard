@@ -7,7 +7,7 @@ using WorkBoard.Domain.Entities;
 namespace WorkBoard.Persistence.Repositories;
 
 public class UserCardRepository
-: GenericRepository<UserCard, (Guid, Guid)>, IUserCardRepository
+    : GenericRepository<UserCard, (Guid, Guid)>, IUserCardRepository
 {
     public UserCardRepository(IDbConnectionFactory connectionFactory)
         : base(connectionFactory)
@@ -45,5 +45,29 @@ public class UserCardRepository
             cancellationToken: cancellationToken);
 
         return await _connection.QueryAsync<User>(command);
+    }
+
+    public async Task<bool> IsAssignedAsync(
+        Guid cardId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM UserCards 
+                    WHERE CardId = @CardId AND UserId = @UserId
+                ) THEN 1 
+                ELSE 0 
+            END;";
+
+        var command = new CommandDefinition(
+            sql,
+            new { CardId = cardId, UserId = userId },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteScalarAsync<bool>(command);
     }
 }

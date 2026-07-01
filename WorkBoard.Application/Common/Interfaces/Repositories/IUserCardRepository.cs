@@ -8,5 +8,8 @@ public interface IUserCardRepository : IGenericRepository<UserCard, (Guid, Guid)
         Guid cardId,
         CancellationToken cancellationToken = default);
 
-
+    Task<bool> IsAssignedAsync(
+        Guid cardId,
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }
