@@ -55,4 +55,9 @@ public interface IBoardNotificationService
         Guid boardId,
         Guid cardId,
         CancellationToken cancellationToken = default);
+
+    Task SendCardRenamedAsync(
+        Guid boardId,
+        CardRenameDto data,
+        CancellationToken cancellationToken = default);
 }
