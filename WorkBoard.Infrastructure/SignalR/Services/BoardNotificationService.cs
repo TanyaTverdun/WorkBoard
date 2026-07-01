@@ -114,4 +114,22 @@ public class BoardNotificationService : IBoardNotificationService
                 newPosition, 
                 cancellationToken);
     }
+
+    public async Task SendCardDeletedAsync(
+        Guid boardId,
+        Guid cardId,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(BoardHubEvents.CardDeleted, cardId, cancellationToken);
+    }
+
+    public async Task SendCardRenamedAsync(
+        Guid boardId, 
+        CardRenameDto data, 
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(BoardHubEvents.CardRenamed, data, cancellationToken);
+    }
 }

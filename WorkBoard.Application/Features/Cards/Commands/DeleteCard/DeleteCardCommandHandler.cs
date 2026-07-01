@@ -1,20 +1,19 @@
 ﻿using MediatR;
-using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
-namespace WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
+namespace WorkBoard.Application.Features.Cards.Commands.DeleteCard;
 
-public class UpdateCardTitleCommandHandler 
-    : IRequestHandler<UpdateCardTitleCommand, Unit>
+public class DeleteCardCommandHandler 
+    : IRequestHandler<DeleteCardCommand, Unit>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
 
-    public UpdateCardTitleCommandHandler(
+    public DeleteCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IBoardNotificationService boardNotificationService)
@@ -25,7 +24,7 @@ public class UpdateCardTitleCommandHandler
     }
 
     public async Task<Unit> Handle(
-        UpdateCardTitleCommand request,
+        DeleteCardCommand request,
         CancellationToken cancellationToken)
     {
         var currentUserId = _userContext.UserId
@@ -42,22 +41,18 @@ public class UpdateCardTitleCommandHandler
         if (membership == null || membership.UserRole == BoardRole.Observer)
         {
             throw new ForbiddenAccessException(
-                "You do not have permission to edit cards on this board.");
+                "You do not have permission to delete cards on this board.");
         }
 
         var card = await uow.CardRepository.GetByIdAsync(
-            request.CardId, 
+            request.CardId,
             cancellationToken)
-            ?? throw new NotFoundException(
-                $"Card with ID {request.CardId} was not found.");
-
-        card.Title = request.Title;
-        card.UpdatedAt = DateTime.UtcNow;
-        card.UpdatedBy = currentUserId;
+                ?? throw new NotFoundException(
+                    $"Card with ID {request.CardId} was not found.");
 
         try
         {
-            await uow.CardRepository.UpdateAsync(card, cancellationToken);
+            await uow.CardRepository.DeleteAsync(card.Id, cancellationToken);
             uow.Commit();
         }
         catch
@@ -66,15 +61,9 @@ public class UpdateCardTitleCommandHandler
             throw;
         }
 
-        var cardRenameDto = new CardRenameDto(
-            card.Id,
-            card.Title
-        );
-
-        await _boardNotificationService.SendCardRenamedAsync(
+        await _boardNotificationService.SendCardDeletedAsync(
             request.BoardId,
-            cardRenameDto,
-            cancellationToken);
+            request.CardId);
 
         return Unit.Value;
     }

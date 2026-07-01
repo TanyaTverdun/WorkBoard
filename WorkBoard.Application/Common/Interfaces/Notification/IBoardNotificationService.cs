@@ -50,4 +50,14 @@ public interface IBoardNotificationService
         Guid newSectionId,
         double newPosition,
         CancellationToken cancellationToken = default);
+
+    Task SendCardDeletedAsync(
+        Guid boardId,
+        Guid cardId,
+        CancellationToken cancellationToken = default);
+
+    Task SendCardRenamedAsync(
+        Guid boardId,
+        CardRenameDto data,
+        CancellationToken cancellationToken = default);
 }
