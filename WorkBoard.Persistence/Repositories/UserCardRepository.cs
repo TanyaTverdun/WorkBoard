@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using System.Data;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -96,5 +97,48 @@ public class UserCardRepository
             cancellationToken: cancellationToken);
 
         await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<IReadOnlyList<UserSearchDto>> GetAssignableUsersAsync(
+        Guid boardId,
+        Guid cardId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                u.UserId,
+                u.FullName,
+                u.Email,
+                u.AvatarUrl
+            FROM 
+                Users u
+            INNER JOIN 
+                BoardMembers bm ON u.UserId = bm.UserId
+            WHERE 
+                bm.BoardId = @BoardId
+                AND u.UserId NOT IN (
+                    SELECT 
+                        UserId 
+                    FROM 
+                        UserCards 
+                    WHERE 
+                        CardId = @CardId
+                )
+            ORDER BY 
+                u.FullName;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                BoardId = boardId,
+                CardId = cardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var users = await _connection.QueryAsync<UserSearchDto>(command);
+
+        return users.ToList().AsReadOnly();
     }
 }
