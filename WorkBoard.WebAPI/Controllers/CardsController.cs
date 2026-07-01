@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
-using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Features.Cards.Commands.AddCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.DeleteCard;
