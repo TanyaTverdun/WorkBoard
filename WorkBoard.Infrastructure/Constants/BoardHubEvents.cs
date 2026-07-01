@@ -10,4 +10,5 @@ public static class BoardHubEvents
     public const string MemberRoleUpdated = "MemberRoleUpdated";
     public const string MemberRemoved = "MemberRemoved";
     public const string CardMoved = "CardMoved";
+    public const string CardDeleted = "CardDeleted";
 }
