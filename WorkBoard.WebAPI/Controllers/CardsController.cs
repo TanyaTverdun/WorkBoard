@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Features.Cards.Commands.AddCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.DeleteCard;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
@@ -369,5 +370,54 @@ public class CardsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Assigns a user to a specific card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="request">
+    /// The object containing the user ID to assign
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="200">
+    /// The user was successfully assigned to the card
+    /// </response>
+    /// <response code="400">
+    /// If the user is already assigned or is not a member of the board
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the current user does not have permission to modify this card
+    /// </response>
+    /// <response code="404">
+    /// If the card or its section was not found
+    /// </response>
+    [HttpPost("/api/cards/{cardId:guid}/assignees")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AddAssignee(
+        [FromRoute] Guid cardId,
+        [FromBody] AddCardAssigneeRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddCardAssigneeCommand
+        {
+            CardId = cardId,
+            TargetUserId = request.UserId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok();
     }
 }
