@@ -277,5 +277,60 @@ public class LabelsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Updates the details of an existing label
+    /// </summary>
+    /// <param name="labelId">
+    /// The unique identifier of the label to update
+    /// </param>
+    /// <param name="request">
+    /// The updated details for the label (Name and Color)
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// The updated label details
+    /// </returns>
+    /// <response code="200">
+    /// Returns the updated label successfully
+    /// </response>
+    /// <response code="400">
+    /// If the provided data is invalid (name already exists on the board)
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify labels on this board
+    /// </response>
+    /// <response code="404">
+    /// If the label with the specified ID was not found
+    /// </response>
+    [HttpPut("/api/labels/{labelId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LabelDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateLabel(
+        [FromRoute] Guid labelId,
+        [FromBody] UpdateLabelRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateLabelCommand
+        {
+            LabelId = labelId,
+            Name = request.Name,
+            Color = request.Color
+        };
+
+        var result = await _mediator.Send(
+            command,
+            cancellationToken);
+
+        return Ok(result);
+    }
+
     
 }
