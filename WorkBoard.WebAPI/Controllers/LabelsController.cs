@@ -228,5 +228,54 @@ public class LabelsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Removes an attached label from a specific card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="labelId">
+    /// The unique identifier of the label to remove
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="204">
+    /// Indicates that the label was removed from the card successfully
+    /// </response>
+    /// <response code="400">
+    /// If the provided data is invalid
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this card
+    /// </response>
+    /// <response code="404">
+    /// If the card or label with the specified ID was not found
+    /// </response>
+    [HttpDelete("{labelId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveLabelFromCard(
+        [FromRoute] Guid cardId,
+        [FromRoute] Guid labelId,
+        CancellationToken cancellationToken)
+    {
+        var command = new RemoveLabelFromCardCommand
+        {
+            CardId = cardId,
+            LabelId = labelId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
     
 }
