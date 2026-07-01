@@ -2,12 +2,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Features.Cards.Commands.AddCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.DeleteCard;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardDescription;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
+using WorkBoard.Application.Features.Cards.Queries.GetAssignableUsers;
 using WorkBoard.Application.Features.Cards.Queries.GetCardAssignees;
 using WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
 
@@ -399,12 +401,16 @@ public class CardsController : ControllerBase
     /// <response code="404">
     /// If the card or its section was not found
     /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
     [HttpPost("/api/cards/{cardId:guid}/assignees")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddAssignee(
         [FromRoute] Guid cardId,
         [FromBody] AddCardAssigneeRequest request,
@@ -419,5 +425,49 @@ public class CardsController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return Ok();
+    }
+
+    /// <summary>
+    /// Gets a list of board members who are not yet assigned to this card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// A list of users available for assignment
+    /// </returns>
+    /// <response code="200">
+    /// Returns the list successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have access to this board
+    /// </response>
+    /// <response code="404">
+    /// If the card or its section was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpGet("/api/cards/{cardId:guid}/assignable-users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssignableUsers(
+        [FromRoute] Guid cardId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetAssignableUsersQuery(cardId);
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(result);
     }
 }
