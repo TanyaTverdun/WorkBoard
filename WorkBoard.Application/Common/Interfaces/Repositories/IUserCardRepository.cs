@@ -12,4 +12,9 @@ public interface IUserCardRepository : IGenericRepository<UserCard, (Guid, Guid)
         Guid cardId,
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task AddAssigneeAsync(
+        Guid cardId,
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

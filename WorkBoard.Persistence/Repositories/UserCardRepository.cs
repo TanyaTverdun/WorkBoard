@@ -40,7 +40,10 @@ public class UserCardRepository
 
         var command = new CommandDefinition(
             sql,
-            new { CardId = cardId },
+            new 
+            { 
+                CardId = cardId 
+            },
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
@@ -64,10 +67,34 @@ public class UserCardRepository
 
         var command = new CommandDefinition(
             sql,
-            new { CardId = cardId, UserId = userId },
+            new 
+            { 
+                CardId = cardId, UserId = userId 
+            },
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
         return await _connection.ExecuteScalarAsync<bool>(command);
+    }
+
+    public async Task AddAssigneeAsync(
+        Guid cardId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            INSERT INTO UserCards (CardId, UserId)
+            VALUES (@CardId, @UserId);";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                CardId = cardId, UserId = userId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
     }
 }
