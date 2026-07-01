@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
+using WorkBoard.Application.Features.Cards.Commands.DeleteCard;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardDescription;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
@@ -271,6 +272,51 @@ public class CardsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new UpdateCardDescriptionCommand(boardId, cardId, request.Description);
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Deletes a specific card from the board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board
+    /// </param>
+    /// <param name="cardId">
+    /// The unique identifier of the card to delete
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="204">
+    /// Indicates that the card was deleted successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to delete cards on this board
+    /// </response>
+    /// <response code="404">
+    /// If the card with the specified ID was not found
+    /// </response>
+    [HttpDelete("/api/boards/{boardId:guid}/cards/{cardId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteCard(
+        [FromRoute] Guid boardId,
+        [FromRoute] Guid cardId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteCardCommand
+        {
+            BoardId = boardId,
+            CardId = cardId
+        };
 
         await _mediator.Send(command, cancellationToken);
 
