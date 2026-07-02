@@ -1,8 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WorkBoard.Application.Common.Checklists;
+using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Features.Checklists.Commands.CreateChecklist;
+using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklist;
 using WorkBoard.Application.Features.Checklists.Queries.GetChecklistsByCard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -115,6 +116,64 @@ public class ChecklistsController : ControllerBase
         };
 
         var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Updates the name of an existing checklist
+    /// </summary>
+    /// <param name="checklistId">
+    /// The unique identifier of the checklist to update
+    /// </param>
+    /// <param name="request">
+    /// The updated details for the checklist (Name)
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// The updated checklist details
+    /// </returns>
+    /// <response code="200">
+    /// Returns the updated checklist successfully
+    /// </response>
+    /// <response code="400">
+    /// If the provided data is invalid
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this checklist
+    /// </response>
+    /// <response code="404">
+    /// If the checklist with the specified ID was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpPut("/api/checklists/{checklistId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChecklistDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateChecklist(
+        [FromRoute] Guid checklistId,
+        [FromBody] UpdateChecklistRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateChecklistCommand
+        {
+            ChecklistId = checklistId,
+            Name = request.Name
+        };
+
+        var result = await _mediator.Send(
+            command, 
+            cancellationToken);
 
         return Ok(result);
     }
