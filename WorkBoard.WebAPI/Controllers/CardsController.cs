@@ -5,6 +5,7 @@ using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Features.Cards.Commands.AddCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.DeleteCard;
+using WorkBoard.Application.Features.Cards.Commands.DeleteCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardDescription;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
@@ -468,5 +469,57 @@ public class CardsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Removes a specific assigned user from a card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card from which the user will be removed
+    /// </param>
+    /// <param name="userId">
+    /// The unique identifier of the user to be removed from the card
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// No content upon successful removal
+    /// </returns>
+    /// <response code="204">
+    /// Returns successfully with no content when the user is unassigned
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have access to modify this card
+    /// </response>
+    /// <response code="404">
+    /// If the card was not found, or the target user is not assigned to this card
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpDelete("/api/cards/{cardId:guid}/assignees/{userId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveAssignee(
+        [FromRoute] Guid cardId,
+        [FromRoute] Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteCardAssigneeCommand
+        {
+            CardId = cardId,
+            TargetUserId = userId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
