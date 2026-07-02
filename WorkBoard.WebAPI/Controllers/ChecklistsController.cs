@@ -36,6 +36,9 @@ public class ChecklistsController : ControllerBase
     /// <response code="200">
     /// Returns the list of checklists successfully
     /// </response>
+    /// </response code="204">
+    /// Return no content if the card has no checklists
+    /// </response>
     /// <response code="401">
     /// If the user is not authenticated
     /// </response>
@@ -49,18 +52,25 @@ public class ChecklistsController : ControllerBase
     /// If an internal server error occurs while processing the request
     /// </response>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ChecklistDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetChecklistsByCard(
-        [FromRoute] Guid cardId,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> GetChecklistByCard(
+    [FromRoute] Guid cardId,
+    CancellationToken cancellationToken)
     {
-        var query = new GetChecklistsByCardQuery(cardId);
+        var query = new GetChecklistByCardQuery(cardId);
 
         var result = await _mediator.Send(query, cancellationToken);
+
+        // Якщо чекліста ще немає, повертаємо 204
+        if (result == null)
+        {
+            return NoContent();
+        }
 
         return Ok(result);
     }

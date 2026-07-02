@@ -7,8 +7,8 @@ using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Checklists.Queries.GetChecklistsByCard;
 
-public class GetChecklistsByCardQueryHandler
-: IRequestHandler<GetChecklistsByCardQuery, IReadOnlyList<ChecklistItemDto>>
+public class GetChecklistByCardQueryHandler
+    : IRequestHandler<GetChecklistByCardQuery, ChecklistDto?>
 {
     private readonly IChecklistRepository _checklistRepository;
     private readonly ICardRepository _cardRepository;
@@ -17,7 +17,7 @@ public class GetChecklistsByCardQueryHandler
     private readonly IMapper _mapper;
     private readonly IUserContext _userContext;
 
-    public GetChecklistsByCardQueryHandler(
+    public GetChecklistByCardQueryHandler(
         IChecklistRepository checklistRepository,
         ICardRepository cardRepository,
         ISectionRepository sectionRepository,
@@ -33,8 +33,8 @@ public class GetChecklistsByCardQueryHandler
         _userContext = userContext;
     }
 
-    public async Task<IReadOnlyList<ChecklistItemDto>> Handle(
-        GetChecklistsByCardQuery request,
+    public async Task<ChecklistDto?> Handle(
+        GetChecklistByCardQuery request,
         CancellationToken cancellationToken)
     {
         var userId = _userContext.UserId
@@ -64,10 +64,10 @@ public class GetChecklistsByCardQueryHandler
                 "You do not have access to this board's checklists.");
         }
 
-        var checklists = await _checklistRepository.GetByCardIdAsync(
+        var checklist = await _checklistRepository.GetByCardIdAsync(
             request.CardId,
             cancellationToken);
 
-        return _mapper.Map<IReadOnlyList<ChecklistItemDto>>(checklists);
+        return _mapper.Map<ChecklistDto>(checklist);
     }
 }

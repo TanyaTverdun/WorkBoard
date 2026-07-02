@@ -21,7 +21,7 @@ public class ChecklistRepository
     {
     }
 
-    public async Task<IEnumerable<Checklist>> GetByCardIdAsync(
+    public async Task<Checklist?> GetByCardIdAsync(
         Guid cardId,
         CancellationToken cancellationToken = default)
     {
@@ -37,19 +37,14 @@ public class ChecklistRepository
             FROM 
                 Checklists
             WHERE 
-                CardId = @CardId
-            ORDER BY 
-                CreatedAt ASC;";
+                CardId = @CardId;";
 
         var command = new CommandDefinition(
             sql,
-            new
-            {
-                CardId = cardId
-            },
+            new { CardId = cardId },
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
-        return await _connection.QueryAsync<Checklist>(command);
+        return await _connection.QueryFirstOrDefaultAsync<Checklist>(command);
     }
 }

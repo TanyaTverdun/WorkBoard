@@ -7,7 +7,7 @@ namespace WorkBoard.Domain.Entities;
 public class Checklist : BaseEntity<Guid>
 {
     [Column("ChecklistId")]
-    public Guid Id { get; set; }
+    public override Guid Id { get; set; }
     public Guid CardId { get; set; }
     public string Name { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
