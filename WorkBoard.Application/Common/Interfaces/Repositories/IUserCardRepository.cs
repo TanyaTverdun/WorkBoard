@@ -1,5 +1,4 @@
-﻿using WorkBoard.Application.Common.Dtos.Users;
-using WorkBoard.Domain.Entities;
+﻿using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -19,8 +18,13 @@ public interface IUserCardRepository : IGenericRepository<UserCard, (Guid, Guid)
         Guid userId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<UserSearchDto>> GetAssignableUsersAsync(
+    Task<IReadOnlyList<User>> GetAssignableUsersAsync(
         Guid boardId,
         Guid cardId,
         CancellationToken cancellationToken = default);
+
+    Task DeleteAssigneeAsync(
+        Guid cardId,
+        Guid userId,
+        CancellationToken cancellation = default);
 }

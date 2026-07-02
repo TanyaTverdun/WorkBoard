@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using System.Data;
-using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -28,7 +27,7 @@ public class UserCardRepository
     {
         const string sql = @"
             SELECT 
-                u.UserId,
+                u.UserId AS Id,
                 u.FullName,
                 u.Email,
                 u.AvatarUrl
@@ -99,14 +98,14 @@ public class UserCardRepository
         await _connection.ExecuteAsync(command);
     }
 
-    public async Task<IReadOnlyList<UserSearchDto>> GetAssignableUsersAsync(
+    public async Task<IReadOnlyList<User>> GetAssignableUsersAsync(
         Guid boardId,
         Guid cardId,
         CancellationToken cancellationToken = default)
     {
         const string sql = @"
             SELECT 
-                u.UserId,
+                u.UserId AS Id,
                 u.FullName,
                 u.Email,
                 u.AvatarUrl
@@ -137,8 +136,31 @@ public class UserCardRepository
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
-        var users = await _connection.QueryAsync<UserSearchDto>(command);
+        return (await _connection.QueryAsync<User>(command)).ToList();
+    }
 
-        return users.ToList().AsReadOnly();
+    public async Task DeleteAssigneeAsync(
+        Guid cardId,
+        Guid userId,
+        CancellationToken cancellation = default)
+    {
+        const string sql = @"
+            DELETE FROM 
+                UserCards
+            WHERE 
+                CardId = @CardId AND 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                CardId = cardId,
+                UserId = userId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellation);
+
+        await _connection.ExecuteAsync(command);
     }
 }
