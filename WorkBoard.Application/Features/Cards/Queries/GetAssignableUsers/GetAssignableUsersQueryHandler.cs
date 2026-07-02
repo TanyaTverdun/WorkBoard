@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -15,19 +16,22 @@ public class GetAssignableUsersQueryHandler
     private readonly IBoardMemberRepository _boardMemberRepository;
     private readonly IUserCardRepository _userCardRepository;
     private readonly IUserContext _userContext;
+    private readonly IMapper _mapper;
 
     public GetAssignableUsersQueryHandler(
         ICardRepository cardRepository,
         ISectionRepository sectionRepository,
         IBoardMemberRepository boardMemberRepository,
         IUserCardRepository userCardRepository,
-        IUserContext userContext)
+        IUserContext userContext,
+        IMapper mapper)
     {
         _cardRepository = cardRepository;
         _sectionRepository = sectionRepository;
         _boardMemberRepository = boardMemberRepository;
         _userCardRepository = userCardRepository;
         _userContext = userContext;
+        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<UserSearchDto>> Handle(
@@ -66,11 +70,13 @@ public class GetAssignableUsersQueryHandler
             request.CardId,
             cancellationToken);
 
-        foreach (var user in usersFromDb)
+        var assignableUsers = _mapper.Map<IReadOnlyList<UserSearchDto>>(usersFromDb);
+
+        foreach (var user in assignableUsers)
         {
             user.Initials = InitialGenerator.Generate(user.FullName);
         }
 
-        return usersFromDb;
+        return assignableUsers;
     }
 }
