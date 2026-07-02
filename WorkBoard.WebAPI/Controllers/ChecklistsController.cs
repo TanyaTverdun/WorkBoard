@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Features.Checklists.Commands.CreateChecklist;
+using WorkBoard.Application.Features.Checklists.Commands.DeleteChecklist;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklist;
 using WorkBoard.Application.Features.Checklists.Queries.GetChecklistsByCard;
 
@@ -176,5 +177,45 @@ public class ChecklistsController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Deletes a checklist permanently
+    /// </summary>
+    /// <param name="checklistId">
+    /// The unique identifier of the checklist to delete
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="204">
+    /// Indicates that the checklist was deleted successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this checklist
+    /// </response>
+    /// <response code="404">
+    /// If the checklist with the specified ID was not found
+    /// </response>
+    [HttpDelete("/api/checklists/{checklistId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteChecklist(
+        [FromRoute] Guid checklistId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteChecklistCommand
+        {
+            ChecklistId = checklistId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
