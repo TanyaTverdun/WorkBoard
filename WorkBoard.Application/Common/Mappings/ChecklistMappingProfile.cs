@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using WorkBoard.Application.Common.Checklists;
+using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Common.Mappings;

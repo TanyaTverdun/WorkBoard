@@ -1,4 +1,4 @@
-﻿namespace WorkBoard.Application.Common.Checklists;
+﻿namespace WorkBoard.Application.Common.Dtos.Checklists;
 
 public class CreateChecklistRequest
 {

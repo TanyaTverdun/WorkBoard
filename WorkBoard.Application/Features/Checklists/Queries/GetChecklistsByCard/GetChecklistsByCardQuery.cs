@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using WorkBoard.Application.Common.Checklists;
+using WorkBoard.Application.Common.Dtos.Checklists;
 
 namespace WorkBoard.Application.Features.Checklists.Queries.GetChecklistsByCard;
 
