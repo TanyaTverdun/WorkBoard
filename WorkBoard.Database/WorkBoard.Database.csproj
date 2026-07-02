@@ -17,6 +17,7 @@
     <None Remove="Scripts\0007_Create_Card_Table.sql" />
     <None Remove="Scripts\0008_Create_Labels_Table.sql" />
     <None Remove="Scripts\0009_Create_CardLabels_Table.sql" />
+    <None Remove="Scripts\0010_Create_UserCards_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +30,7 @@
     <EmbeddedResource Include="Scripts\0007_Create_Card_Table.sql" />
     <EmbeddedResource Include="Scripts\0008_Create_Labels_Table.sql" />
     <EmbeddedResource Include="Scripts\0009_Create_CardLabels_Table.sql" />
+    <EmbeddedResource Include="Scripts\0010_Create_UserCards_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>

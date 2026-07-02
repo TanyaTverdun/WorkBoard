@@ -2,11 +2,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Features.Cards.Commands.AddCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.CreateCard;
 using WorkBoard.Application.Features.Cards.Commands.DeleteCard;
+using WorkBoard.Application.Features.Cards.Commands.DeleteCardAssignee;
 using WorkBoard.Application.Features.Cards.Commands.MoveCard;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardDescription;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
+using WorkBoard.Application.Features.Cards.Queries.GetAssignableUsers;
+using WorkBoard.Application.Features.Cards.Queries.GetCardAssignees;
 using WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -316,6 +320,202 @@ public class CardsController : ControllerBase
         {
             BoardId = boardId,
             CardId = cardId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Retrieves a list of all users assigned to a specific card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// A list of assigned users with their basic information and initials
+    /// </returns>
+    /// <response code="200">
+    /// Returns the list of card assignees successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to access this board
+    /// </response>
+    /// <response code="404">
+    /// If the card with the specified ID or its section was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpGet("/api/cards/{cardId:guid}/assignees")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetCardAssignees(
+        [FromRoute] Guid cardId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetCardAssigneesQuery 
+        { 
+            CardId = cardId 
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Assigns a user to a specific card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="request">
+    /// The object containing the user ID to assign
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="200">
+    /// The user was successfully assigned to the card
+    /// </response>
+    /// <response code="400">
+    /// If the user is already assigned or is not a member of the board
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the current user does not have permission to modify this card
+    /// </response>
+    /// <response code="404">
+    /// If the card or its section was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpPost("/api/cards/{cardId:guid}/assignees")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddAssignee(
+        [FromRoute] Guid cardId,
+        [FromBody] AddCardAssigneeRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddCardAssigneeCommand
+        {
+            CardId = cardId,
+            TargetUserId = request.UserId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Gets a list of board members who are not yet assigned to this card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// A list of users available for assignment
+    /// </returns>
+    /// <response code="200">
+    /// Returns the list successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have access to this board
+    /// </response>
+    /// <response code="404">
+    /// If the card or its section was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpGet("/api/cards/{cardId:guid}/assignable-users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssignableUsers(
+        [FromRoute] Guid cardId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetAssignableUsersQuery(cardId);
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Removes a specific assigned user from a card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card from which the user will be removed
+    /// </param>
+    /// <param name="userId">
+    /// The unique identifier of the user to be removed from the card
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// No content upon successful removal
+    /// </returns>
+    /// <response code="204">
+    /// Returns successfully with no content when the user is unassigned
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have access to modify this card
+    /// </response>
+    /// <response code="404">
+    /// If the card was not found, or the target user is not assigned to this card
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpDelete("/api/cards/{cardId:guid}/assignees/{userId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveAssignee(
+        [FromRoute] Guid cardId,
+        [FromRoute] Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteCardAssigneeCommand
+        {
+            CardId = cardId,
+            TargetUserId = userId
         };
 
         await _mediator.Send(command, cancellationToken);
