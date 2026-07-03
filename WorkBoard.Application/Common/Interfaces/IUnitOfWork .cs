@@ -15,6 +15,7 @@ public interface IUnitOfWork : IDisposable
     ICardLabelRepository CardLabelRepository { get; }
     IUserCardRepository UserCardRepository { get; }
     IChecklistRepository ChecklistRepository { get; }
+    IChecklistItemRepository ChecklistItemRepository { get; }
 
     void Commit();
     void Rollback();
