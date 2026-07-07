@@ -27,24 +27,61 @@ public class ChecklistRepository
     {
         const string sql = @"
             SELECT 
-                ChecklistId AS Id,
-                CardId,
-                Name,
-                CreatedAt,
-                CreatedBy,
-                UpdatedAt,
-                UpdatedBy
+                c.ChecklistId AS Id,
+                c.CardId,
+                c.Name,
+                c.CreatedAt,
+                c.CreatedBy,
+                c.UpdatedAt,
+                c.UpdatedBy,
+                ci.ChecklistItemId AS Id,
+                ci.ChecklistId,
+                ci.Title,
+                ci.IsDone,
+                ci.CreatedAt,
+                ci.CreatedBy,
+                ci.UpdatedAt,
+                ci.UpdatedBy
             FROM 
-                Checklists
+                Checklists c
+            LEFT JOIN 
+                Checklist_items ci ON c.ChecklistId = ci.ChecklistId
             WHERE 
-                CardId = @CardId;";
+                c.CardId = @CardId
+            ORDER BY 
+                ci.CreatedAt ASC;";
+
+        var checklistDictionary = new Dictionary<Guid, Checklist>();
 
         var command = new CommandDefinition(
             sql,
-            new { CardId = cardId },
+            new 
+            { 
+                CardId = cardId 
+            },
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
-        return await _connection.QueryFirstOrDefaultAsync<Checklist>(command);
+        await _connection.QueryAsync<Checklist, ChecklistItem, Checklist>(
+            command,
+            (checklist, item) =>
+            {
+                if (!checklistDictionary.TryGetValue(checklist.Id, out var currentChecklist))
+                {
+                    currentChecklist = checklist;
+                    checklistDictionary.Add(currentChecklist.Id, currentChecklist);
+                }
+
+                if (item != null)
+                {
+                    currentChecklist.Items.Add(item);
+                }
+
+                return currentChecklist;
+            },
+            splitOn: "Id"
+        );
+
+        return checklistDictionary.Values.FirstOrDefault();
     }
 }
