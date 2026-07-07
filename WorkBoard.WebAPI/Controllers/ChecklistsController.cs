@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Checklists;
+using WorkBoard.Application.Features.Checklists.Commands.AddChecklistItem;
 using WorkBoard.Application.Features.Checklists.Commands.CreateChecklist;
 using WorkBoard.Application.Features.Checklists.Commands.DeleteChecklist;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklist;
@@ -66,7 +67,6 @@ public class ChecklistsController : ControllerBase
 
         var result = await _mediator.Send(query, cancellationToken);
 
-        // Якщо чекліста ще немає, повертаємо 204
         if (result == null)
         {
             return NoContent();
@@ -210,11 +210,15 @@ public class ChecklistsController : ControllerBase
     /// <response code="404">
     /// If the checklist with the specified ID was not found
     /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
     [HttpDelete("/api/checklists/{checklistId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteChecklist(
         [FromRoute] Guid checklistId,
         CancellationToken cancellationToken)
@@ -227,5 +231,61 @@ public class ChecklistsController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Adds a new item to an existing checklist
+    /// </summary>
+    /// <param name="checklistId">
+    /// The unique identifier of the checklist
+    /// </param>
+    /// <param name="request">
+    /// The details of the new checklist item (Title)
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// The details of the newly created checklist item
+    /// </returns>
+    /// <response code="200">
+    /// Returns the created checklist item successfully
+    /// </response>
+    /// <response code="400">
+    /// If the input data is invalid (Title is empty or duplicate)
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this checklist
+    /// </response>
+    /// <response code="404">
+    /// If the checklist with the specified ID was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpPost("/api/checklists/{checklistId:guid}/items")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChecklistItemDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddChecklistItem(
+        [FromRoute] Guid checklistId,
+        [FromBody] AddChecklistItemRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddChecklistItemCommand
+        {
+            ChecklistId = checklistId,
+            Title = request.Title
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return Ok(result);
     }
 }
