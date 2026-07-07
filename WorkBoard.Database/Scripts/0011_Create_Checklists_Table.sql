@@ -1,6 +1,6 @@
 CREATE TABLE [Checklists] (
     [ChecklistId] UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
-    [CardId]      UNIQUEIDENTIFIER NOT NULL,
+    [CardId]      UNIQUEIDENTIFIER NOT NULL UNIQUE,
     [Name]        NVARCHAR(50)     NOT NULL,
     [CreatedAt]   DATETIME2        NOT NULL,
     [CreatedBy]   UNIQUEIDENTIFIER NOT NULL,

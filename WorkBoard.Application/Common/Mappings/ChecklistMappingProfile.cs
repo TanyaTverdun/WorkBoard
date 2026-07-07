@@ -11,9 +11,9 @@ public class ChecklistMappingProfile : Profile
         CreateMap<Checklist, ChecklistDto>()
             .ForMember(
                 dest => dest.ChecklistId,
-                opt => opt.MapFrom(src => src.Id))
-            .ForMember(
-                dest => dest.Items,
-                opt => opt.Ignore());
+                opt => opt.MapFrom(src => src.Id));
+
+        CreateMap<ChecklistItem, ChecklistItemDto>();
     }
 }
+

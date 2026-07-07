@@ -3,16 +3,21 @@ using WorkBoard.Domain.Common;
 
 namespace WorkBoard.Domain.Entities;
 
-[Table("Checklists")]
-public class Checklist : BaseEntity<Guid>
+[Table("Checklist_items")]
+public class ChecklistItem : BaseEntity<Guid>
 {
-    [Column("ChecklistId")]
+    [Column("ChecklistItemId")]
     public override Guid Id { get; set; }
-    public Guid CardId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public List<ChecklistItem> Items { get; set; } = new();
+
+    public Guid ChecklistId { get; set; }
+
+    public required string Title { get; set; }
+
+    public bool IsDone { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public Guid CreatedBy { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
     public Guid? UpdatedBy { get; set; }
 }
