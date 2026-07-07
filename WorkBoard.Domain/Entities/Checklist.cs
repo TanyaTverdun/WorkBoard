@@ -10,6 +10,7 @@ public class Checklist : BaseEntity<Guid>
     public override Guid Id { get; set; }
     public Guid CardId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public List<ChecklistItem> Items { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public Guid CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
