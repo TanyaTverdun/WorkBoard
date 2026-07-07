@@ -5,6 +5,7 @@ using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Features.Checklists.Commands.AddChecklistItem;
 using WorkBoard.Application.Features.Checklists.Commands.CreateChecklist;
 using WorkBoard.Application.Features.Checklists.Commands.DeleteChecklist;
+using WorkBoard.Application.Features.Checklists.Commands.DeleteChecklistItem;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklist;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklistItem;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklistItemStatus;
@@ -401,5 +402,49 @@ public class ChecklistsController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Deletes a checklist item permanently
+    /// </summary>
+    /// <param name="itemId">
+    /// The unique identifier of the checklist item to delete
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <response code="204">
+    /// Indicates that the checklist item was deleted successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to modify this checklist item
+    /// </response>
+    /// <response code="404">
+    /// If the checklist item with the specified ID was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpDelete("/api/checklists/items/{itemId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteChecklistItem(
+        [FromRoute] Guid itemId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteChecklistItemCommand
+        {
+            ItemId = itemId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
