@@ -6,7 +6,7 @@ using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
-namespace WorkBoard.Application.Features.Comments.GetCommentsByCard;
+namespace WorkBoard.Application.Features.Comments.Queries.GetCommentsByCard;
 
 public class GetCommentsByCardQueryHandler
     : IRequestHandler<GetCommentsByCardQuery, IReadOnlyList<CommentDto>>
