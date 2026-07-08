@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Features.Attachments.Commands.AddAttachment;
+using WorkBoard.Application.Features.Attachments.Commands.DeleteAttachment;
 using WorkBoard.Application.Features.Attachments.Queries.GetAttachmentsByCard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -133,5 +134,57 @@ public class AttachmentsController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Deletes a specific attachment from a card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="attachmentId">
+    /// The unique identifier of the attachment to delete
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token provided by the runtime
+    /// </param>
+    /// <returns>
+    /// No content if the deletion was successful
+    /// </returns>
+    /// <response code="204">
+    /// If the attachment was successfully deleted
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have permission to access this card
+    /// </response>
+    /// <response code="404">
+    /// If the attachment or the card was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpDelete("{attachmentId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteAttachment(
+        [FromRoute] Guid cardId,
+        [FromRoute] Guid attachmentId,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteAttachmentCommand
+        {
+            CardId = cardId,
+            AttachmentId = attachmentId
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
