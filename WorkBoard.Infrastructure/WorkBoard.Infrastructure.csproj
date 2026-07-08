@@ -7,21 +7,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AI\**" />
+    <Compile Remove="Authentication\**" />
+    <Compile Remove="BackgroundJobs\**" />
+    <Compile Remove="FileStorage\**" />
+    <Compile Remove="Messaging\**" />
+    <Compile Remove="Payments\**" />
+    <Compile Remove="Signaling\**" />
+    <EmbeddedResource Remove="AI\**" />
+    <EmbeddedResource Remove="Authentication\**" />
+    <EmbeddedResource Remove="BackgroundJobs\**" />
+    <EmbeddedResource Remove="FileStorage\**" />
+    <EmbeddedResource Remove="Messaging\**" />
+    <EmbeddedResource Remove="Payments\**" />
+    <EmbeddedResource Remove="Signaling\**" />
+    <None Remove="AI\**" />
+    <None Remove="Authentication\**" />
+    <None Remove="BackgroundJobs\**" />
+    <None Remove="FileStorage\**" />
+    <None Remove="Messaging\**" />
+    <None Remove="Payments\**" />
+    <None Remove="Signaling\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AI\" />
-    <Folder Include="Authentication\" />
-    <Folder Include="BackgroundJobs\" />
-    <Folder Include="FileStorage\" />
-    <Folder Include="Messaging\" />
-    <Folder Include="Payments\" />
-    <Folder Include="Signaling\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.29.1" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.33.1" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.0" />
   </ItemGroup>
 
 </Project>
