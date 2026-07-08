@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
 using WorkBoard.Application.Common.Interfaces.Notification;
@@ -131,5 +132,14 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(BoardHubEvents.CardRenamed, data, cancellationToken);
+    }
+
+    public async Task SendCommentAddedAsync(
+        Guid boardId,
+        CommentDto comment,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(BoardHubEvents.CommentAdded, comment, cancellationToken);
     }
 }

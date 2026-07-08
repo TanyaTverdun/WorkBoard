@@ -20,6 +20,7 @@
     <None Remove="Scripts\0010_Create_UserCards_Table.sql" />
     <None Remove="Scripts\0011_Create_Checklists_Table.sql" />
     <None Remove="Scripts\0012_Create_ChecklistItems_Table.sql" />
+    <None Remove="Scripts\0013_Create_Comments_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +36,7 @@
     <EmbeddedResource Include="Scripts\0010_Create_UserCards_Table.sql" />
     <EmbeddedResource Include="Scripts\0011_Create_Checklists_Table.sql" />
     <EmbeddedResource Include="Scripts\0012_Create_ChecklistItems_Table.sql" />
+    <EmbeddedResource Include="Scripts\0013_Create_Comments_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
