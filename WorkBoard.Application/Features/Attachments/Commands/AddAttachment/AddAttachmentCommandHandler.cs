@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Attachments;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
@@ -60,7 +61,7 @@ public class AddAttachmentCommandHandler
         var uploadedFileUrl = await _blobStorageService.UploadAsync(
             request.FileStream,
             request.FileName,
-            "attachments",
+            BlobContainers.Attachments,
             request.ContentType,
             cancellationToken);
 
@@ -70,7 +71,9 @@ public class AddAttachmentCommandHandler
             CardId = request.CardId,
             FileUrl = uploadedFileUrl,
             FileName = request.FileName,
-            FileSizeBytes = request.FileSizeBytes
+            FileSizeBytes = request.FileSizeBytes,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = currentUserId
         };
 
         try
