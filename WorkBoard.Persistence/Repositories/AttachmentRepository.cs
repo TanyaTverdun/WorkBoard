@@ -31,13 +31,15 @@ public class AttachmentRepository
                 CardId,
                 FileUrl,
                 FileName,
-                FileSizeBytes
+                FileSizeBytes,
+                CreatedAt,
+                CreatedBy
             FROM 
                 Attachments
             WHERE 
                 CardId = @CardId
             ORDER BY 
-                FileName ASC;";
+                CreatedAt ASC;";
 
         var command = new CommandDefinition(
             sql,

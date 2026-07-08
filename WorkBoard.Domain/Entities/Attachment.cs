@@ -16,4 +16,8 @@ public class Attachment : BaseEntity<Guid>
     public required string FileName { get; set; }
 
     public required long FileSizeBytes { get; set; }
+
+    public required DateTime CreatedAt { get; set; }
+
+    public required Guid CreatedBy { get; set; }
 }
