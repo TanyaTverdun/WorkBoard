@@ -1,4 +1,5 @@
 ﻿using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
 using WorkBoard.Domain.Enums;
@@ -59,5 +60,10 @@ public interface IBoardNotificationService
     Task SendCardRenamedAsync(
         Guid boardId,
         CardRenameDto data,
+        CancellationToken cancellationToken = default);
+
+    Task SendCommentAddedAsync(
+        Guid boardId,
+        CommentDto comment,
         CancellationToken cancellationToken = default);
 }
