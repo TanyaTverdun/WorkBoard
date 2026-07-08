@@ -19,7 +19,6 @@
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
     <Folder Include="Features\Boards\Commands\CreateBoard\" />
-    <Folder Include="Features\Comments\Commands\" />
   </ItemGroup>
 
   <ItemGroup>
