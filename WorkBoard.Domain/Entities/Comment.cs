@@ -16,4 +16,7 @@ public class Comment : BaseEntity<Guid>
     public required string Text { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    [NotMapped]
+    public string? UserFullName { get; set; }
 }

@@ -27,17 +27,20 @@ public class CommentRepository
     {
         const string sql = @"
             SELECT 
-                ComentId AS Id,
-                CardId,
-                UserId,
-                Text,
-                CreatedAt
+                c.ComentId AS Id,
+                c.CardId,
+                c.UserId,
+                c.Text,
+                c.CreatedAt,
+                u.FullName AS UserFullName
             FROM 
-                Coments
+                Coments c
+            INNER JOIN 
+                Users u ON c.UserId = u.UserId
             WHERE 
-                CardId = @CardId
+                c.CardId = @CardId
             ORDER BY 
-                CreatedAt ASC;";
+                c.CreatedAt ASC;";
 
         var command = new CommandDefinition(
             sql,

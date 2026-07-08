@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -68,6 +69,13 @@ public class GetCommentsByCardQueryHandler
             request.CardId,
             cancellationToken);
 
-        return _mapper.Map<IReadOnlyList<CommentDto>>(comments);
+        var dtos = _mapper.Map<List<CommentDto>>(comments);
+
+        foreach (var dto in dtos)
+        {
+            dto.Initials = InitialGenerator.Generate(dto.UserFullName);
+        }
+
+        return dtos.AsReadOnly();
     }
 }

@@ -11,4 +11,7 @@ public class CommentDto
     public required string Text { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public string? UserFullName { get; set; }
+
+    public required string Initials { get; set; }
 }
