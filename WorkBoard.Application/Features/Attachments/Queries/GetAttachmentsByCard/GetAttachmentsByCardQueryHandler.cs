@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Attachments;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Attachments.Queries.GetAttachmentsByCard;
@@ -16,6 +18,7 @@ public class GetAttachmentsByCardQueryHandler
     private readonly IBoardMemberRepository _boardMemberRepository;
     private readonly IMapper _mapper;
     private readonly IUserContext _userContext;
+    private readonly IBlobStorageService _blobStorageService;
 
     public GetAttachmentsByCardQueryHandler(
         IAttachmentRepository attachmentRepository,
@@ -23,7 +26,8 @@ public class GetAttachmentsByCardQueryHandler
         ISectionRepository sectionRepository,
         IBoardMemberRepository boardMemberRepository,
         IMapper mapper,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBlobStorageService blobStorageService)
     {
         _attachmentRepository = attachmentRepository;
         _cardRepository = cardRepository;
@@ -31,6 +35,7 @@ public class GetAttachmentsByCardQueryHandler
         _boardMemberRepository = boardMemberRepository;
         _mapper = mapper;
         _userContext = userContext;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<IReadOnlyList<AttachmentDto>> Handle(
@@ -72,6 +77,15 @@ public class GetAttachmentsByCardQueryHandler
             request.CardId,
             cancellationToken);
 
-        return _mapper.Map<IReadOnlyList<AttachmentDto>>(attachments);
+        var dtos = _mapper.Map<IReadOnlyList<AttachmentDto>>(attachments);
+
+        foreach (var dto in dtos)
+        {
+            dto.FileUrl = _blobStorageService.GetReadSasUrl(
+                dto.FileUrl,
+                BlobContainers.Attachments);
+        }
+
+        return dtos;
     }
 }

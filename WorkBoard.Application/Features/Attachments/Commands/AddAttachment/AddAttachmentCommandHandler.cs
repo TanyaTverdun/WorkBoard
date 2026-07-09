@@ -90,6 +90,12 @@ public class AddAttachmentCommandHandler
             throw;
         }
 
-        return _mapper.Map<AttachmentDto>(attachment);
+        var dto = _mapper.Map<AttachmentDto>(attachment);
+
+        dto.FileUrl = _blobStorageService.GetReadSasUrl(
+                dto.FileUrl,
+                BlobContainers.Attachments);
+
+        return dto;
     }
 }

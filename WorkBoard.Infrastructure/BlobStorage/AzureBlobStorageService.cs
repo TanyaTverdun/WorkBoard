@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 
 namespace WorkBoard.Infrastructure.BlobStorage;
@@ -23,7 +24,7 @@ public class BlobStorageService : IBlobStorageService
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
         await containerClient.CreateIfNotExistsAsync(
-            PublicAccessType.Blob,
+            PublicAccessType.None,
             cancellationToken: cancellationToken);
 
         var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
@@ -43,6 +44,33 @@ public class BlobStorageService : IBlobStorageService
             cancellationToken);
 
         return blobClient.Uri.ToString();
+    }
+
+    public string GetReadSasUrl(
+        string fileUrl, 
+        string containerName, 
+        int expiresInMinutes = 1440)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(
+            containerName);
+
+        var uri = new Uri(fileUrl);
+        var fileName = Path.GetFileName(uri.LocalPath);
+
+        var blobClient = containerClient.GetBlobClient(fileName);
+
+        if (!blobClient.CanGenerateSasUri)
+        {
+            throw new InvalidOperationException(
+                "BlobClient cannot generate SAS URI. " +
+                "Ensure you are using connection strings.");
+        }
+
+        var sasUri = blobClient.GenerateSasUri(
+            BlobSasPermissions.Read,
+            DateTimeOffset.UtcNow.AddMinutes(expiresInMinutes));
+
+        return sasUri.ToString();
     }
 
     public async Task DeleteAsync(
