@@ -24,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
     private IChecklistItemRepository? _checklistItemRepository;
     private ICommentRepository? _commentRepository;
     private IAttachmentRepository? _attachmentRepository;
+    private IActivityLogRepository? _activityLogRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -104,6 +105,11 @@ public class UnitOfWork : IUnitOfWork
 
     public IAttachmentRepository AttachmentRepository =>
         _attachmentRepository ??= new AttachmentRepository(
+            _sqlConnection,
+            _transaction);
+
+    public IActivityLogRepository ActivityLogRepository =>
+        _activityLogRepository ??= new ActivityLogRepository(
             _sqlConnection,
             _transaction);
 
