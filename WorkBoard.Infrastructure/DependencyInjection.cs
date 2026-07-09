@@ -1,6 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Infrastructure.BlobStorage;
 using WorkBoard.Infrastructure.Options;
 using WorkBoard.Infrastructure.SignalR.Services;
 
@@ -30,7 +33,19 @@ public static class DependencyInjection
         services.AddSignalR()
                 .AddAzureSignalR(azureOptions.SignalR.ConnectionString);
 
+        if (string.IsNullOrEmpty(azureOptions.BlobStorage?.ConnectionString))
+        {
+            throw new InvalidOperationException(
+                "Azure Blob Storage Connection String is missing in appsettings.json");
+        }
+
+        services.AddAzureClients(clientBuilder =>
+        {
+            clientBuilder.AddBlobServiceClient(azureOptions.BlobStorage.ConnectionString);
+        });
+
         services.AddTransient<IBoardNotificationService, BoardNotificationService>();
+        services.AddScoped<IBlobStorageService, BlobStorageService>();
 
         return services;
     }

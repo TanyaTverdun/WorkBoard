@@ -23,6 +23,7 @@ public class UnitOfWork : IUnitOfWork
     private IChecklistRepository? _checklistRepository;
     private IChecklistItemRepository? _checklistItemRepository;
     private ICommentRepository? _commentRepository;
+    private IAttachmentRepository? _attachmentRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -98,6 +99,11 @@ public class UnitOfWork : IUnitOfWork
 
     public ICommentRepository CommentRepository =>
         _commentRepository ??= new CommentRepository(
+            _sqlConnection,
+            _transaction);
+
+    public IAttachmentRepository AttachmentRepository =>
+        _attachmentRepository ??= new AttachmentRepository(
             _sqlConnection,
             _transaction);
 
