@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
@@ -16,18 +19,20 @@ public class CreateCardCommandHandler
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
     private readonly IMapper _mapper;
-
+    private readonly IBoardNotificationService _notificationService;
 
     public CreateCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IBoardNotificationService boardNotificationService,
-        IMapper mapper)
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _boardNotificationService = boardNotificationService;
         _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<CardDto> Handle(
@@ -67,9 +72,23 @@ public class CreateCardCommandHandler
             CreatedBy = currentUserId
         };
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = newCard.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.CreatedCard(section.Name),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.CardRepository.CreateAsync(newCard);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
+                cancellationToken);
+
             uow.Commit();
         }
         catch
@@ -83,6 +102,15 @@ public class CreateCardCommandHandler
         await _boardNotificationService.SendCardCreatedAsync(
             section.BoardId, 
             cardDto, 
+            cancellationToken);
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
             cancellationToken);
 
         return cardDto;

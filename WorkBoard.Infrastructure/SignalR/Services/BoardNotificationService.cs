@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Section;
@@ -141,5 +142,14 @@ public class BoardNotificationService : IBoardNotificationService
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(BoardHubEvents.CommentAdded, comment, cancellationToken);
+    }
+
+    public async Task SendActivityLogAddedAsync(
+        Guid boardId,
+        ActivityLogDto log,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(BoardHubEvents.ActivityLogAdded, log, cancellationToken);
     }
 }

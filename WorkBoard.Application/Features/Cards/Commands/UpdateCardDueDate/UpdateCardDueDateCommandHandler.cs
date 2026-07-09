@@ -1,6 +1,12 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Cards.Commands.UpdateCardDueDate;
@@ -10,13 +16,19 @@ public class UpdateCardDueDateCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IMapper _mapper;
+    private readonly IBoardNotificationService _notificationService;
 
     public UpdateCardDueDateCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task Handle(
@@ -46,13 +58,33 @@ public class UpdateCardDueDateCommandHandler
             ?? throw new NotFoundException(
                 $"Card with ID {request.CardId} was not found.");
 
+        var section = await uow.SectionRepository.GetByIdAsync(
+            card.SectionId,
+            cancellationToken)
+            ?? throw new NotFoundException(
+                $"Section with ID {card.SectionId} was not found.");
+
         card.DueDate = request.DueDate;
         card.UpdatedAt = DateTime.UtcNow;
         card.UpdatedBy = currentUserId;
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.SetDueDate(request.DueDate),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.CardRepository.UpdateAsync(card, cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
+                cancellationToken);
+
             uow.Commit();
         }
         catch
@@ -60,5 +92,14 @@ public class UpdateCardDueDateCommandHandler
             uow.Rollback();
             throw;
         }
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
     }
 }

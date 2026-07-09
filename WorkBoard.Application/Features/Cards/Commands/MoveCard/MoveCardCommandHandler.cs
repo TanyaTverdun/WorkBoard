@@ -1,7 +1,12 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Cards.Commands.MoveCard;
@@ -11,15 +16,19 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
+    private readonly IMapper _mapper;
+
 
     public MoveCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IBoardNotificationService boardNotificationService)
+        IBoardNotificationService boardNotificationService,
+        IMapper mapper)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _boardNotificationService = boardNotificationService;
+        _mapper = mapper;
     }
 
     public async Task<Unit> Handle(
@@ -62,12 +71,25 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
                 $"Section with ID {request.NewSectionId} was not found on this board.");
         }
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.MovedCard(targetSection.Name),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.CardRepository.UpdateCardPositionAsync(
                 request.CardId,
                 request.NewSectionId,
                 request.NewPosition,
+                cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
                 cancellationToken);
 
             uow.Commit();
@@ -83,6 +105,15 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
             request.CardId,
             request.NewSectionId,
             request.NewPosition,
+            cancellationToken);
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _boardNotificationService.SendActivityLogAddedAsync(
+            targetSection.BoardId,
+            logDto,
             cancellationToken);
 
         return Unit.Value;

@@ -1,6 +1,12 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Cards.Commands.AddCardAssignee;
 
@@ -9,13 +15,19 @@ public class AddCardAssigneeCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IMapper _mapper;
+    private readonly IBoardNotificationService _notificationService;
 
     public AddCardAssigneeCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(
@@ -74,11 +86,30 @@ public class AddCardAssigneeCommandHandler
                 $"User {request.TargetUserId} is already assigned to this card.");
         }
 
+        var user = await uow.UserRepository.GetByIdAsync(
+            request.TargetUserId,
+            cancellationToken)
+                ?? throw new NotFoundException(
+                    $"User with ID {request.TargetUserId} was not found.");
+
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = request.CardId,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.AddedAssignee(user.FullName),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.UserCardRepository.AddAssigneeAsync(
                 request.CardId,
                 request.TargetUserId,
+                cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
                 cancellationToken);
 
             uow.Commit();
@@ -88,6 +119,15 @@ public class AddCardAssigneeCommandHandler
             uow.Rollback();
             throw;
         }
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
 
         return Unit.Value;
     }

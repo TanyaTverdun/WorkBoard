@@ -1,6 +1,12 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Checklists.Commands.DeleteChecklistItem;
 
@@ -9,13 +15,20 @@ public class DeleteChecklistItemCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _notificationService;
+    private readonly IMapper _mapper;
+
 
     public DeleteChecklistItemCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService notificationService,
+        IMapper mapper)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _notificationService = notificationService;
+        _mapper = mapper;
     }
 
     public async Task Handle(
@@ -57,11 +70,25 @@ public class DeleteChecklistItemCommandHandler
                 "You do not have access to modify items in this checklist.");
         }
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.DeletedChecklistItem(checklistItem.Title),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.ChecklistItemRepository.DeleteAsync(
                 checklistItem.Id, 
                 cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
+                cancellationToken);
+
             uow.Commit();
         }
         catch
@@ -69,5 +96,14 @@ public class DeleteChecklistItemCommandHandler
             uow.Rollback();
             throw;
         }
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
     }
 }

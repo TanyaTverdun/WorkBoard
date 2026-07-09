@@ -1,9 +1,15 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
+using static System.Collections.Specialized.BitVector32;
 
 namespace WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
 
@@ -13,15 +19,18 @@ public class UpdateCardTitleCommandHandler
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
+    private readonly IMapper _mapper;
 
     public UpdateCardTitleCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IBoardNotificationService boardNotificationService)
+        IBoardNotificationService boardNotificationService,
+        IMapper mapper)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _boardNotificationService = boardNotificationService;
+        _mapper = mapper;
     }
 
     public async Task<Unit> Handle(
@@ -51,6 +60,21 @@ public class UpdateCardTitleCommandHandler
             ?? throw new NotFoundException(
                 $"Card with ID {request.CardId} was not found.");
 
+        var section = await uow.SectionRepository.GetByIdAsync(
+            card.SectionId,
+            cancellationToken)
+            ?? throw new NotFoundException(
+                $"Section with ID {card.SectionId} was not found.");
+
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.RenamedCard(card.Title, request.Title),
+            CreatedAt = DateTime.UtcNow
+        };
+
         card.Title = request.Title;
         card.UpdatedAt = DateTime.UtcNow;
         card.UpdatedBy = currentUserId;
@@ -58,6 +82,11 @@ public class UpdateCardTitleCommandHandler
         try
         {
             await uow.CardRepository.UpdateAsync(card, cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
+                cancellationToken);
+
             uow.Commit();
         }
         catch
@@ -74,6 +103,15 @@ public class UpdateCardTitleCommandHandler
         await _boardNotificationService.SendCardRenamedAsync(
             request.BoardId,
             cardRenameDto,
+            cancellationToken);
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _boardNotificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
             cancellationToken);
 
         return Unit.Value;

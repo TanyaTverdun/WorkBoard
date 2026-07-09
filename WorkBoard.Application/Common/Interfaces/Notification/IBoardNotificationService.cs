@@ -1,4 +1,5 @@
-﻿using WorkBoard.Application.Common.Dtos.Cards;
+﻿using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
@@ -65,5 +66,10 @@ public interface IBoardNotificationService
     Task SendCommentAddedAsync(
         Guid boardId,
         CommentDto comment,
+        CancellationToken cancellationToken = default);
+
+    Task SendActivityLogAddedAsync(
+        Guid boardId,
+        ActivityLogDto log,
         CancellationToken cancellationToken = default);
 }
