@@ -1,8 +1,12 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Attachments.Commands.DeleteAttachment;
 
@@ -12,15 +16,21 @@ public class DeleteAttachmentCommandHandler
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBlobStorageService _blobStorageService;
+    private readonly IBoardNotificationService _notificationService;
+    private readonly IMapper _mapper;
 
     public DeleteAttachmentCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IBlobStorageService blobStorageService)
+        IBlobStorageService blobStorageService,
+        IBoardNotificationService notificationService,
+        IMapper mapper)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _blobStorageService = blobStorageService;
+        _notificationService = notificationService;
+        _mapper = mapper;
     }
 
     public async Task Handle(
@@ -68,10 +78,23 @@ public class DeleteAttachmentCommandHandler
             BlobContainers.Attachments,
             cancellationToken);
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = request.CardId,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.DeletedAttachment(attachment.FileName),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.AttachmentRepository.DeleteAsync(
                 request.AttachmentId,
+                cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
                 cancellationToken);
 
             uow.Commit();
@@ -81,5 +104,12 @@ public class DeleteAttachmentCommandHandler
             uow.Rollback();
             throw;
         }
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
     }
 }

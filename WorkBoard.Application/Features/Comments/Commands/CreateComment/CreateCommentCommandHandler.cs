@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -67,9 +69,23 @@ public class CreateCommentCommandHandler
             CreatedAt = DateTime.UtcNow
         };
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.CreatedComment,
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.CommentRepository.CreateAsync(comment, cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
+                cancellationToken);
+
             uow.Commit();
         }
         catch
@@ -80,15 +96,24 @@ public class CreateCommentCommandHandler
 
         comment.UserFullName = _userContext.FullName;
 
-        var dto = _mapper.Map<CommentDto>(comment);
+        var commentDto = _mapper.Map<CommentDto>(comment);
 
-        dto.Initials = InitialGenerator.Generate(dto.UserFullName);
+        commentDto.Initials = InitialGenerator.Generate(commentDto.UserFullName);
 
         await _notificationService.SendCommentAddedAsync(
             section.BoardId,
-            dto,
+            commentDto,
             cancellationToken);
 
-        return dto;
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
+
+        return commentDto;
     }
 }

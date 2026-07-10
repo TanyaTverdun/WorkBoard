@@ -1,8 +1,13 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Checklists.Commands.UpdateChecklistItemStatus;
 
@@ -12,15 +17,18 @@ public class UpdateChecklistItemStatusCommandHandler
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
+    private readonly IBoardNotificationService _notificationService;
 
     public UpdateChecklistItemStatusCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IMapper mapper)
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<ChecklistItemDto> Handle(
@@ -62,6 +70,17 @@ public class UpdateChecklistItemStatusCommandHandler
                 "You do not have access to modify items in this checklist.");
         }
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.ChangedChecklistItemStatus(
+                checklistItem.Title, 
+                request.IsDone),
+            CreatedAt = DateTime.UtcNow
+        };
+
         checklistItem.IsDone = request.IsDone;
         checklistItem.UpdatedAt = DateTime.UtcNow;
         checklistItem.UpdatedBy = currentUserId;
@@ -71,6 +90,11 @@ public class UpdateChecklistItemStatusCommandHandler
             await uow.ChecklistItemRepository.UpdateAsync(
                 checklistItem, 
                 cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
+                cancellationToken);
+
             uow.Commit();
         }
         catch
@@ -78,6 +102,15 @@ public class UpdateChecklistItemStatusCommandHandler
             uow.Rollback();
             throw;
         }
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
 
         return _mapper.Map<ChecklistItemDto>(checklistItem);
     }

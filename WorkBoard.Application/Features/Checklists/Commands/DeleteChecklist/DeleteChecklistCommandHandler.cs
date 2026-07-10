@@ -1,6 +1,12 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Checklists.Commands.DeleteChecklist;
 
@@ -8,13 +14,19 @@ public class DeleteChecklistCommandHandler : IRequestHandler<DeleteChecklistComm
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IMapper _mapper;
+    private readonly IBoardNotificationService _notificationService;
 
     public DeleteChecklistCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _notificationService = notificationService;
+        _mapper = mapper;
     }
 
     public async Task Handle(
@@ -56,10 +68,23 @@ public class DeleteChecklistCommandHandler : IRequestHandler<DeleteChecklistComm
                 "You do not have access to modify this checklist.");
         }
 
+        var log = new ActivityLog
+        {
+            Id = Guid.NewGuid(),
+            CardId = card.Id,
+            UserId = currentUserId,
+            Text = ActivityLogMessages.DeletedChecklist(checklist.Name),
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
             await uow.ChecklistRepository.DeleteAsync(
                 checklist.Id, 
+                cancellationToken);
+
+            await uow.ActivityLogRepository.CreateAsync(
+                log,
                 cancellationToken);
 
             uow.Commit();
@@ -69,5 +94,14 @@ public class DeleteChecklistCommandHandler : IRequestHandler<DeleteChecklistComm
             uow.Rollback();
             throw;
         }
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
     }
 }

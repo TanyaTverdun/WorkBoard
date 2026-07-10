@@ -22,6 +22,7 @@
     <None Remove="Scripts\0012_Create_ChecklistItems_Table.sql" />
     <None Remove="Scripts\0013_Create_Comments_Table.sql" />
     <None Remove="Scripts\0014_Create_Attachments_Table.sql" />
+    <None Remove="Scripts\0015_Create_ActivityLogs_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +40,7 @@
     <EmbeddedResource Include="Scripts\0012_Create_ChecklistItems_Table.sql" />
     <EmbeddedResource Include="Scripts\0013_Create_Comments_Table.sql" />
     <EmbeddedResource Include="Scripts\0014_Create_Attachments_Table.sql" />
+    <EmbeddedResource Include="Scripts\0015_Create_ActivityLogs_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
