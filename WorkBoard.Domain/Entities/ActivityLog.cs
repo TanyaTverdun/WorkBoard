@@ -13,6 +13,9 @@ public class ActivityLog : BaseEntity<Guid>
 
     public required Guid UserId { get; set; }
 
+    [NotMapped]
+    public string? FullName { get; set; }
+
     public required string Text { get; set; }
 
     public required DateTime CreatedAt { get; set; }

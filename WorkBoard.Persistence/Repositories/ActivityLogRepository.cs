@@ -27,23 +27,27 @@ public class ActivityLogRepository
     {
         const string sql = @"
             SELECT 
-                ActivityLogId AS Id,
-                CardId,
-                UserId,
-                Text,
-                CreatedAt
+                al.ActivityLogId AS Id,
+                al.CardId,
+                al.UserId,
+                al.Text,
+                al.CreatedAt,
+                u.FullName
             FROM 
-                ActivityLogs
+                ActivityLogs al
+            INNER JOIN 
+                Users u 
+                ON al.UserId = u.Id
             WHERE 
-                CardId = @CardId
+                al.CardId = @CardId
             ORDER BY 
-                CreatedAt DESC;";
+                al.CreatedAt DESC;";
 
         var command = new CommandDefinition(
             sql,
-            new
-            {
-                CardId = cardId
+            new 
+            { 
+                CardId = cardId 
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
