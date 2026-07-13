@@ -4,6 +4,7 @@ using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Attachments;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
@@ -115,6 +116,8 @@ public class AddAttachmentCommandHandler
                 BlobContainers.Attachments);
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = _userContext.FullName!;
+        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId, 
