@@ -2,7 +2,6 @@
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
-using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Sections.Commands.DeleteSection;
