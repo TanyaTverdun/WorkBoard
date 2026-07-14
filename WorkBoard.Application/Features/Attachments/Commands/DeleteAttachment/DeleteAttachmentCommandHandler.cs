@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Attachments;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -113,6 +114,15 @@ public class DeleteAttachmentCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        var payload = new AttachmentDeletedDto(
+            request.CardId, 
+            request.AttachmentId);
+
+        await _notificationService.SendAttachmentDeletedAsync(
+            section.BoardId,
+            payload,
             cancellationToken);
     }
 }

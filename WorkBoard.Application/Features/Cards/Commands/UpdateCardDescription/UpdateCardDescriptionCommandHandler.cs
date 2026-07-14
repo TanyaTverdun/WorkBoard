@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -101,6 +102,15 @@ public class UpdateCardDescriptionCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        var сardDescriptionUpdateDto = new CardDescriptionUpdateDto(
+            request.CardId, 
+            request.Description);
+
+        await _notificationService.SendCardDescriptionUpdatedAsync(
+            section.BoardId,
+            сardDescriptionUpdateDto,
             cancellationToken);
 
         return Unit.Value;

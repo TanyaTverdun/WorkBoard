@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -100,6 +101,17 @@ public class UpdateCardDueDateCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        var cardDueDateUpdateDto = new CardDueDateUpdateDto
+        {
+            CardId = card.Id,
+            DueDate = request.DueDate
+        };
+
+        await _notificationService.SendCardDueDateUpdatedAsync(
+            section.BoardId,
+            cardDueDateUpdateDto,
             cancellationToken);
     }
 }

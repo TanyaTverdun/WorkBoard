@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -127,6 +128,21 @@ public class AddCardAssigneeCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        var assigneeDto = new CardAssigneeDto(
+            user.Id,
+            user.FullName ?? "Unknown",
+            user.Email,
+            user.AvatarUrl,
+            InitialGenerator.Generate(user.FullName)
+        );
+
+        var assigneeAddDto = new AssigneeAddDto(request.CardId, assigneeDto);
+
+        await _notificationService.SendAssigneeAddedAsync(
+            section.BoardId,
+            assigneeAddDto,
             cancellationToken);
 
         return Unit.Value;

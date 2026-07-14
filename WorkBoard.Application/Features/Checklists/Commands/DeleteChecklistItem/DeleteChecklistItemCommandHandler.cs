@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -104,6 +105,15 @@ public class DeleteChecklistItemCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        var payload = new ChecklistItemDeletedDto(
+            checklistItem.ChecklistId, 
+            request.ItemId);
+
+        await _notificationService.SendChecklistItemDeletedAsync(
+            section.BoardId,
+            payload,
             cancellationToken);
     }
 }

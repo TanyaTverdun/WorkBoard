@@ -117,6 +117,12 @@ public class RemoveLabelFromCardCommandHandler
             logDto,
             cancellationToken);
 
+        await _notificationService.SendLabelRemovedFromCardAsync(
+            section.BoardId,
+            request.CardId,
+            request.LabelId,
+            cancellationToken);
+
         return Unit.Value;
     }
 }

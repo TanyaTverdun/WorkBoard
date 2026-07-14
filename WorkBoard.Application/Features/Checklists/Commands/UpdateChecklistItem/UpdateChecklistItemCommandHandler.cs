@@ -124,6 +124,16 @@ public class UpdateChecklistItemCommandHandler
             logDto,
             cancellationToken);
 
+        var checklistItemRenamedDto = new ChecklistItemRenamedDto(
+            checklistItem.ChecklistId,
+            checklistItem.Id,
+            checklistItem.Title);
+
+        await _notificationService.SendChecklistItemRenamedAsync(
+            section.BoardId,
+            checklistItemRenamedDto,
+            cancellationToken);
+
         return _mapper.Map<ChecklistItemDto>(checklistItem);
     }
 }

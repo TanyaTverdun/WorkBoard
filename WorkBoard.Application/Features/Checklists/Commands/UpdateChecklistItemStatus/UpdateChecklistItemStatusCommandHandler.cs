@@ -112,6 +112,16 @@ public class UpdateChecklistItemStatusCommandHandler
             logDto,
             cancellationToken);
 
+        var checklistItemStatusUpdatedDto = new ChecklistItemStatusUpdatedDto(
+            checklistItem.ChecklistId,
+            request.ItemId,
+            request.IsDone);
+
+        await _notificationService.SendChecklistItemStatusUpdatedAsync(
+            section.BoardId,
+            checklistItemStatusUpdatedDto,
+            cancellationToken);
+
         return _mapper.Map<ChecklistItemDto>(checklistItem);
     }
 }

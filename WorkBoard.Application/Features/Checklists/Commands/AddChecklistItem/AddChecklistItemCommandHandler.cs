@@ -120,6 +120,17 @@ public class AddChecklistItemCommandHandler
             logDto,
             cancellationToken);
 
-        return _mapper.Map<ChecklistItemDto>(checklistItem);
+        var checklistItemDto = _mapper.Map<ChecklistItemDto>(checklistItem);
+
+        var checklistItemAddedDto = new ChecklistItemAddedDto(
+            request.ChecklistId, 
+            checklistItemDto);
+
+        await _notificationService.SendChecklistItemAddedAsync(
+            section.BoardId,
+            checklistItemAddedDto,
+            cancellationToken);
+
+        return checklistItemDto;
     }
 }

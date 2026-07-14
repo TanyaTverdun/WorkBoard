@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -121,6 +122,12 @@ public class AddLabelToCardCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        await _notificationService.SendLabelAddedToCardAsync(
+            section.BoardId,
+            request.CardId,
+            _mapper.Map<LabelDto>(label),
             cancellationToken);
 
         return Unit.Value;

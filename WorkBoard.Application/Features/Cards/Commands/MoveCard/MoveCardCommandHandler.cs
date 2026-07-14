@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -100,13 +101,6 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
             throw;
         }
 
-        await _boardNotificationService.SendCardMovedAsync(
-            request.BoardId,
-            request.CardId,
-            request.NewSectionId,
-            request.NewPosition,
-            cancellationToken);
-
         var logDto = _mapper.Map<ActivityLogDto>(log);
         logDto.FullName = _userContext.FullName!;
         logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
@@ -114,6 +108,18 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
         await _boardNotificationService.SendActivityLogAddedAsync(
             targetSection.BoardId,
             logDto,
+            cancellationToken);
+
+        var cardMovedDto = new CardMovedDto(
+            request.CardId,
+            request.NewSectionId,
+            targetSection.Name,
+            request.NewPosition
+        );
+
+        await _boardNotificationService.SendCardMovedAsync(
+            request.BoardId,
+            cardMovedDto,
             cancellationToken);
 
         return Unit.Value;

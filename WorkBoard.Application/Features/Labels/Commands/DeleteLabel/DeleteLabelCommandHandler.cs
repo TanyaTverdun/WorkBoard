@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Labels.Commands.DeleteLabel;
@@ -10,13 +11,16 @@ public class DeleteLabelCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IBoardNotificationService _notificationService;
 
     public DeleteLabelCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(
@@ -63,6 +67,11 @@ public class DeleteLabelCommandHandler
             uow.Rollback();
             throw;
         }
+
+        await _notificationService.SendLabelDeletedAsync(
+            label.BoardId, 
+            request.LabelId, 
+            cancellationToken);
 
         return Unit.Value;
     }

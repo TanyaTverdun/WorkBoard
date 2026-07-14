@@ -3,6 +3,7 @@ using MediatR;
 using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Features.Labels.Commands.UpdateLabel;
@@ -12,15 +13,18 @@ public class UpdateLabelCommandHandler : IRequestHandler<UpdateLabelCommand, Lab
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
+    private readonly IBoardNotificationService _notificationService;
 
     public UpdateLabelCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IMapper mapper)
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<LabelDto> Handle(
@@ -79,6 +83,13 @@ public class UpdateLabelCommandHandler : IRequestHandler<UpdateLabelCommand, Lab
             throw;
         }
 
-        return _mapper.Map<LabelDto>(label);
+        var labelDto = _mapper.Map<LabelDto>(label);
+
+        await _notificationService.SendLabelUpdatedAsync(
+            label.BoardId, 
+            labelDto, 
+            cancellationToken);
+
+        return labelDto;
     }
 }

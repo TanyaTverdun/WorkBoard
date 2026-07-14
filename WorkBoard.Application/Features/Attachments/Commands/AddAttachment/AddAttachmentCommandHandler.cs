@@ -124,6 +124,13 @@ public class AddAttachmentCommandHandler
             logDto, 
             cancellationToken);
 
+        var attachmentAddedDto = new AttachmentAddedDto(request.CardId, dto);
+
+        await _notificationService.SendAttachmentAddedAsync(
+            section.BoardId,
+            attachmentAddedDto,
+            cancellationToken);
+
         return dto;
     }
 }
