@@ -14,8 +14,4 @@ public interface ILabelRepository
     Task<IReadOnlyList<Label>> GetByBoardIdAsync(
         Guid boardId,
         CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<Label>> GetByCardIdAsync(
-        Guid cardId,
-        CancellationToken cancellationToken = default);
 }
