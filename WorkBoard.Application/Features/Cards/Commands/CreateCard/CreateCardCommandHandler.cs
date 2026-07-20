@@ -17,20 +17,17 @@ public class CreateCardCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
-    private readonly IBoardNotificationService _boardNotificationService;
     private readonly IMapper _mapper;
     private readonly IBoardNotificationService _notificationService;
 
     public CreateCardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IBoardNotificationService boardNotificationService,
         IMapper mapper,
         IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
-        _boardNotificationService = boardNotificationService;
         _mapper = mapper;
         _notificationService = notificationService;
     }
@@ -99,7 +96,7 @@ public class CreateCardCommandHandler
 
         var cardDto = _mapper.Map<CardDto>(newCard);
 
-        await _boardNotificationService.SendCardCreatedAsync(
+        await _notificationService.SendCardCreatedAsync(
             section.BoardId, 
             cardDto, 
             cancellationToken);

@@ -3,6 +3,7 @@ using MediatR;
 using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
@@ -14,15 +15,18 @@ public class CreateLabelCommandHandler
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
+    private readonly IBoardNotificationService _notificationService;
 
     public CreateLabelCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IMapper mapper)
+        IMapper mapper,
+        IBoardNotificationService notificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _mapper = mapper;
+        _notificationService = notificationService;
     }
 
     public async Task<LabelDto> Handle(
@@ -100,6 +104,19 @@ public class CreateLabelCommandHandler
             throw;
         }
 
-        return _mapper.Map<LabelDto>(newLabel);
+        var labelDto = _mapper.Map<LabelDto>(newLabel);
+
+        await _notificationService.SendLabelCreatedAsync(
+            section.BoardId, 
+            labelDto, 
+            cancellationToken);
+
+        await _notificationService.SendLabelAddedToCardAsync(
+            section.BoardId, 
+            request.CardId, 
+            labelDto, 
+            cancellationToken);
+
+        return labelDto;
     }
 }

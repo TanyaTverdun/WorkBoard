@@ -109,6 +109,17 @@ public class CreateChecklistCommandHandler
             logDto,
             cancellationToken);
 
-        return _mapper.Map<ChecklistDto>(checklist);
+        var checklistDto = _mapper.Map<ChecklistDto>(checklist);
+
+        var checklistCreatedDto = new ChecklistCreatedDto(
+            request.CardId, 
+            checklistDto);
+
+        await _notificationService.SendChecklistCreatedAsync(
+            section.BoardId,
+            checklistCreatedDto,
+            cancellationToken);
+
+        return checklistDto;
     }
 }

@@ -26,59 +26,6 @@ public class ChecklistsController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all checklists attached to a specific card
-    /// </summary>
-    /// <param name="cardId">
-    /// The unique identifier of the card
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Cancellation token provided by the runtime
-    /// </param>
-    /// <returns>
-    /// A list of checklists belonging to the card
-    /// </returns>
-    /// <response code="200">
-    /// Returns the list of checklists successfully
-    /// </response>
-    /// </response code="204">
-    /// Return no content if the card has no checklists
-    /// </response>
-    /// <response code="401">
-    /// If the user is not authenticated
-    /// </response>
-    /// <response code="403">
-    /// If the user does not have permission to access this card
-    /// </response>
-    /// <response code="404">
-    /// If the card with the specified ID was not found
-    /// </response>
-    /// <response code="500">
-    /// If an internal server error occurs while processing the request
-    /// </response>
-    [HttpGet]
-    [ProducesResponseType(typeof(ChecklistDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetChecklistByCard(
-    [FromRoute] Guid cardId,
-    CancellationToken cancellationToken)
-    {
-        var query = new GetChecklistByCardQuery(cardId);
-
-        var result = await _mediator.Send(query, cancellationToken);
-
-        if (result == null)
-        {
-            return NoContent();
-        }
-
-        return Ok(result);
-    }
-
-    /// <summary>
     /// Creates a new checklist for a specific card
     /// </summary>
     /// <param name="cardId">

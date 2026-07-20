@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
+using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -115,6 +116,15 @@ public class DeleteCardAssigneeCommandHandler
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
             logDto,
+            cancellationToken);
+
+        var assigneeRemoveDto = new AssigneeRemoveDto(
+            request.CardId, 
+            request.TargetUserId);
+
+        await _notificationService.SendAssigneeRemovedAsync(
+            section.BoardId,
+            assigneeRemoveDto,
             cancellationToken);
 
         return Unit.Value;

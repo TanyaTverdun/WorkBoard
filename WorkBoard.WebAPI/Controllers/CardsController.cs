@@ -12,6 +12,7 @@ using WorkBoard.Application.Features.Cards.Commands.UpdateCardDueDate;
 using WorkBoard.Application.Features.Cards.Commands.UpdateCardTitle;
 using WorkBoard.Application.Features.Cards.Queries.GetAssignableUsers;
 using WorkBoard.Application.Features.Cards.Queries.GetCardAssignees;
+using WorkBoard.Application.Features.Cards.Queries.GetCardDetails;
 using WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -127,6 +128,50 @@ public class CardsController : ControllerBase
         var result = await _mediator.Send(
             query,
             cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Gets full details of a specific card
+    /// </summary>
+    /// <param name="cardId">
+    /// The unique identifier of the card
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A comprehensive CardDetailsDto object
+    /// </returns>
+    /// <response code="200">
+    /// Returns the full card details successfully
+    /// </response>
+    /// <response code="401">
+    /// If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// If the user does not have access to this board/card
+    /// </response>
+    /// <response code="404">
+    /// If the card or its section was not found
+    /// </response>
+    /// <response code="500">
+    /// If an internal server error occurs while processing the request
+    /// </response>
+    [HttpGet("{cardId:guid}/details")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetCardDetails(
+        [FromRoute] Guid cardId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetCardDetailsQuery(cardId);
+
+        var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
     }

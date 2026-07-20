@@ -111,6 +111,15 @@ public class UpdateChecklistCommandHandler
             logDto,
             cancellationToken);
 
+        var checklistRenamedDto = new ChecklistRenamedDto(
+            request.ChecklistId, 
+            request.Name);
+
+        await _notificationService.SendChecklistRenamedAsync(
+            section.BoardId,
+            checklistRenamedDto,
+            cancellationToken);
+
         return _mapper.Map<ChecklistDto>(checklist);
     }
 }

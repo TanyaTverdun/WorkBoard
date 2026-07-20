@@ -20,36 +20,4 @@ public class ActivityLogRepository
         : base(connection, transaction)
     {
     }
-
-    public async Task<IReadOnlyList<ActivityLog>> GetByCardIdAsync(
-        Guid cardId,
-        CancellationToken cancellationToken = default)
-    {
-        const string sql = @"
-            SELECT 
-                ActivityLogId AS Id,
-                CardId,
-                UserId,
-                Text,
-                CreatedAt
-            FROM 
-                ActivityLogs
-            WHERE 
-                CardId = @CardId
-            ORDER BY 
-                CreatedAt DESC;";
-
-        var command = new CommandDefinition(
-            sql,
-            new
-            {
-                CardId = cardId
-            },
-            transaction: _transaction,
-            cancellationToken: cancellationToken);
-
-        var logs = await _connection.QueryAsync<ActivityLog>(command);
-
-        return logs.ToList().AsReadOnly();
-    }
 }
