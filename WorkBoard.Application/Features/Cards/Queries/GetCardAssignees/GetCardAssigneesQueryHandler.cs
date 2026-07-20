@@ -70,12 +70,15 @@ public class GetCardAssigneesQueryHandler
             request.CardId,
             cancellationToken);
 
-        return assignees.Select(a => new CardAssigneeDto(
-            a.Id,
-            a.FullName ?? "Unknown",
-            a.Email,
-            a.AvatarUrl,
-            InitialGenerator.Generate(a.FullName)
-        )).ToList().AsReadOnly();
+        var cardAssignees = assignees.Select(a => new CardAssigneeDto
+        {
+            UserId = a.Id,
+            FullName = a.FullName ?? "Unknown",
+            Email = a.Email,
+            AvatarUrl = a.AvatarUrl,
+            Initials = InitialGenerator.Generate(a.FullName)
+        });
+        
+        return cardAssignees.ToList().AsReadOnly();
     }
 }

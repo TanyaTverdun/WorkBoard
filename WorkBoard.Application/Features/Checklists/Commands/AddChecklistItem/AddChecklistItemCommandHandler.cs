@@ -123,6 +123,7 @@ public class AddChecklistItemCommandHandler
         var checklistItemDto = _mapper.Map<ChecklistItemDto>(checklistItem);
 
         var checklistItemAddedDto = new ChecklistItemAddedDto(
+            card.Id,
             request.ChecklistId, 
             checklistItemDto);
 

@@ -113,8 +113,9 @@ public class UpdateChecklistItemStatusCommandHandler
             cancellationToken);
 
         var checklistItemStatusUpdatedDto = new ChecklistItemStatusUpdatedDto(
+            card.Id,
             checklistItem.ChecklistId,
-            request.ItemId,
+            checklistItem.Id,
             request.IsDone);
 
         await _notificationService.SendChecklistItemStatusUpdatedAsync(

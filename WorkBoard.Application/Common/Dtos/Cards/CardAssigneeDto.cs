@@ -1,9 +1,10 @@
 ﻿namespace WorkBoard.Application.Common.Dtos.Cards;
 
-public record CardAssigneeDto(
-    Guid UserId,
-    string FullName,
-    string Email,
-    string? AvatarUrl,
-    string Initials
-);
+public class CardAssigneeDto
+{
+    public Guid UserId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public string Initials { get; set; } = string.Empty;
+}
