@@ -8,7 +8,6 @@ using WorkBoard.Application.Features.Labels.Commands.DeleteLabel;
 using WorkBoard.Application.Features.Labels.Commands.RemoveLabelFromCard;
 using WorkBoard.Application.Features.Labels.Commands.UpdateLabel;
 using WorkBoard.Application.Features.Labels.Queries.GetLabelsByBoard;
-using WorkBoard.Application.Features.Labels.Queries.GetLabelsByCard;
 
 namespace WorkBoard.WebAPI.Controllers;
 

@@ -9,7 +9,6 @@ using WorkBoard.Application.Features.Checklists.Commands.DeleteChecklistItem;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklist;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklistItem;
 using WorkBoard.Application.Features.Checklists.Commands.UpdateChecklistItemStatus;
-using WorkBoard.Application.Features.Checklists.Queries.GetChecklistsByCard;
 
 namespace WorkBoard.WebAPI.Controllers;
 
