@@ -71,13 +71,14 @@ public class GetCardDetailsQueryHandler
                 "You do not have access to this card.");
         }
 
-        var assigneesDtos = fullData.Assignees.Select(a => new CardAssigneeDto(
-            a.Id,
-            a.FullName ?? "Unknown",
-            a.Email,
-            a.AvatarUrl,
-            InitialGenerator.Generate(a.FullName)
-        )).ToList().AsReadOnly();
+        var assigneesDtos = fullData.Assignees.Select(a => new CardAssigneeDto 
+        {
+            UserId = a.Id,
+            FullName = a.FullName ?? "Unknown",
+            Email = a.Email,
+            AvatarUrl = a.AvatarUrl,
+            Initials = InitialGenerator.Generate(a.FullName)
+        }).ToList().AsReadOnly();
 
         var attachmentsDtos = _mapper.Map<List<AttachmentDto>>(
             fullData.Attachments);

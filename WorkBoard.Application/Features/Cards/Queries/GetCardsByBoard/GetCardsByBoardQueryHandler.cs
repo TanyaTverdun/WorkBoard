@@ -2,6 +2,7 @@
 using MediatR;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -50,10 +51,20 @@ public class GetCardsByBoardQueryHandler
                 "You do not have access to this board.");
         }
 
-        var cards = await _cardRepository.GetCardsByBoardIdAsync(
+        var rawCards = await _cardRepository.GetCardsByBoardIdAsync(
             request.BoardId,
             cancellationToken);
 
-        return _mapper.Map<IReadOnlyList<CardDto>>(cards);
+        var cardDtos = _mapper.Map<List<CardDto>>(rawCards);
+
+        foreach (var card in cardDtos)
+        {
+            foreach (var assignee in card.Assignees)
+            {
+                assignee.Initials = InitialGenerator.Generate(assignee.FullName);
+            }
+        }
+
+        return cardDtos.AsReadOnly();
     }
 }

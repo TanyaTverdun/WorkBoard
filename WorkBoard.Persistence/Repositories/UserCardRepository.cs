@@ -115,14 +115,6 @@ public class UserCardRepository
                 BoardMembers bm ON u.UserId = bm.UserId
             WHERE 
                 bm.BoardId = @BoardId
-                AND u.UserId NOT IN (
-                    SELECT 
-                        UserId 
-                    FROM 
-                        UserCards 
-                    WHERE 
-                        CardId = @CardId
-                )
             ORDER BY 
                 u.FullName;";
 

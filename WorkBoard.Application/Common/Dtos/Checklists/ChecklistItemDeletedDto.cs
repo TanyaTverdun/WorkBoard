@@ -1,5 +1,8 @@
-﻿namespace WorkBoard.Application.Common.Dtos.Checklists;
+﻿using WorkBoard.Domain.Entities;
+
+namespace WorkBoard.Application.Common.Dtos.Checklists;
 
 public record ChecklistItemDeletedDto(
-    Guid ChecklistId, 
-    Guid ItemId);
+    Guid CardId,
+    Guid ChecklistId,
+    ChecklistItemDto Item);

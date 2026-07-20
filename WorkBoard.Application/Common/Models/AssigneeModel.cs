@@ -1,10 +1,9 @@
-﻿namespace WorkBoard.Application.Common.Dtos.Cards;
+﻿namespace WorkBoard.Application.Common.Models;
 
-public class CardAssigneeDto
+public class AssigneeModel
 {
     public Guid UserId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
-    public string Initials { get; set; } = string.Empty;
 }

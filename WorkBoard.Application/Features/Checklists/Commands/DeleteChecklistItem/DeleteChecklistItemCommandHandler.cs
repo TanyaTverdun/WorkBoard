@@ -107,9 +107,12 @@ public class DeleteChecklistItemCommandHandler
             logDto,
             cancellationToken);
 
+        var checklistItemDto = _mapper.Map<ChecklistItemDto>(checklistItem);
+
         var payload = new ChecklistItemDeletedDto(
-            checklistItem.ChecklistId, 
-            request.ItemId);
+            card.Id,
+            checklistItem.ChecklistId,
+            checklistItemDto);
 
         await _notificationService.SendChecklistItemDeletedAsync(
             section.BoardId,

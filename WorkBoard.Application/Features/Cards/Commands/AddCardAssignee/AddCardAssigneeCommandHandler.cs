@@ -130,13 +130,14 @@ public class AddCardAssigneeCommandHandler
             logDto,
             cancellationToken);
 
-        var assigneeDto = new CardAssigneeDto(
-            user.Id,
-            user.FullName ?? "Unknown",
-            user.Email,
-            user.AvatarUrl,
-            InitialGenerator.Generate(user.FullName)
-        );
+        var assigneeDto = new CardAssigneeDto
+        {
+            UserId = user.Id,
+            FullName = user.FullName ?? "Unknown",
+            Email = user.Email,
+            AvatarUrl = user.AvatarUrl,
+            Initials = InitialGenerator.Generate(user.FullName)
+        };
 
         var assigneeAddDto = new AssigneeAddDto(request.CardId, assigneeDto);
 

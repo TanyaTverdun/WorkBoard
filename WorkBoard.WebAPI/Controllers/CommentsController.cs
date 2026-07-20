@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Features.Comments.Commands.CreateComment;
-using WorkBoard.Application.Features.Comments.Queries.GetCommentsByCard;
 
 namespace WorkBoard.WebAPI.Controllers;
 

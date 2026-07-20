@@ -1,10 +1,11 @@
 ﻿using Dapper;
 using System.Data;
-using System.Text;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Application.Common.Models;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Models;
+using WorkBoard.Persistence.Models;
 
 namespace WorkBoard.Persistence.Repositories;
 
@@ -22,7 +23,7 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
     {
     }
 
-    public async Task<IReadOnlyList<Card>> GetCardsByBoardIdAsync(
+    public async Task<IReadOnlyList<CardSummaryModel>> GetCardsByBoardIdAsync(
         Guid boardId,
         CancellationToken cancellationToken = default)
     {
@@ -34,10 +35,37 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                 c.Description,
                 c.DueDate,
                 c.Position,
-                c.CreatedAt,
-                c.CreatedBy,
-                c.UpdatedAt,
-                c.UpdatedBy
+                (SELECT 
+                    COUNT(*) 
+                FROM 
+                    Coments cm 
+                WHERE 
+                    cm.CardId = c.CardId) AS CommentsCount,
+                (SELECT 
+                    COUNT(*) 
+                FROM 
+                    Attachments a 
+                WHERE 
+                    a.CardId = c.CardId) AS AttachmentsCount,
+                (SELECT 
+                    COUNT(*) 
+                FROM 
+                    Checklist_items ci 
+                JOIN 
+                    Checklists ch 
+                    ON ci.ChecklistId = ch.ChecklistId 
+                WHERE 
+                    ch.CardId = c.CardId) AS ChecklistTotalItems,
+                (SELECT 
+                    COUNT(*) 
+                FROM 
+                    Checklist_items ci 
+                JOIN 
+                    Checklists ch 
+                    ON ci.ChecklistId = ch.ChecklistId 
+                WHERE 
+                    ch.CardId = c.CardId 
+                    AND ci.IsDone = 1) AS ChecklistDoneItems
             FROM 
                 Cards c
             JOIN 
@@ -46,7 +74,44 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
             WHERE 
                 s.BoardId = @BoardId
             ORDER BY 
-                c.Position ASC;";
+                c.Position ASC;
+
+            SELECT 
+                cl.CardId, 
+                l.LabelId AS Id,
+                l.BoardId, 
+                l.Name, 
+                l.Color
+            FROM 
+                CardLabels cl
+            JOIN 
+                Labels l 
+                ON cl.LabelId = l.LabelId
+            WHERE 
+                l.BoardId = @BoardId
+            ORDER BY 
+                l.CreatedAt ASC;
+
+            SELECT 
+                uc.CardId, 
+                u.UserId, 
+                u.FullName,
+                u.Email,
+                u.AvatarUrl
+            FROM 
+                UserCards uc
+            JOIN 
+                Users u 
+                ON uc.UserId = u.UserId
+            JOIN 
+                Cards c 
+                ON uc.CardId = c.CardId
+            JOIN 
+                Sections s 
+                ON c.SectionId = s.SectionId
+            WHERE 
+                s.BoardId = @BoardId;
+        ";
 
         var command = new CommandDefinition(
             sql,
@@ -57,12 +122,49 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
-        var cards = await _connection.QueryAsync<Card>(command);
+        using var multi = await _connection.QueryMultipleAsync(command);
 
-        return cards.ToList().AsReadOnly();
+        var cards = (await multi.ReadAsync<CardSummaryModel>()).ToList();
+        var labels = await multi.ReadAsync<CardLabelModel>();
+        var assignees = await multi.ReadAsync<CardAssigneeModel>();
+
+        var labelsDict = labels
+            .GroupBy(l => l.CardId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var assigneesDict = assignees
+            .GroupBy(a => a.CardId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var card in cards)
+        {
+            if (labelsDict.TryGetValue(card.Id, out var cardLabels))
+            {
+                card.Labels = cardLabels.Select(l => new LabelModel
+                {
+                    Id = l.Id,
+                    BoardId = l.BoardId,
+                    Name = l.Name,
+                    Color = l.Color
+                }).ToList();
+            }
+
+            if (assigneesDict.TryGetValue(card.Id, out var cardAssignees))
+            {
+                card.Assignees = cardAssignees.Select(a => new AssigneeModel
+                {
+                    UserId = a.UserId,
+                    FullName = a.FullName,
+                    Email = a.Email,
+                    AvatarUrl = a.AvatarUrl
+                }).ToList();
+            }
+        }
+
+        return cards.AsReadOnly();
     }
 
-    public async Task<CardFullData?> GetCardFullDataAsync(
+    public async Task<CardFullDataModel?> GetCardFullDataAsync(
         Guid cardId,
         CancellationToken cancellationToken)
     {
@@ -103,7 +205,9 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                 CardLabels cl 
                 ON l.LabelId = cl.LabelId 
             WHERE 
-                cl.CardId = @CardId;
+                cl.CardId = @CardId
+            ORDER BY 
+                l.CreatedAt ASC;
 
             SELECT 
                 ChecklistId AS Id, 
@@ -194,7 +298,7 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
             return null;
         }
 
-        var result = new CardFullData 
+        var result = new CardFullDataModel 
         { 
             Card = card 
         };
