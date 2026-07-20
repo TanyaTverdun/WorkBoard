@@ -1,12 +1,10 @@
-﻿using WorkBoard.Application.Common.Dtos.Labels;
+﻿namespace WorkBoard.Application.Common.Models;
 
-namespace WorkBoard.Application.Common.Dtos.Cards;
-
-public class CardDto
+public class CardSummaryModel
 {
     public Guid Id { get; set; }
     public Guid SectionId { get; set; }
-    public required string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateTime? DueDate { get; set; }
     public double Position { get; set; }
@@ -14,6 +12,6 @@ public class CardDto
     public int AttachmentsCount { get; set; }
     public int ChecklistTotalItems { get; set; }
     public int ChecklistDoneItems { get; set; }
-    public List<LabelDto> Labels { get; set; } = new();
-    public List<CardAssigneeDto> Assignees { get; set; } = new();
+    public List<LabelModel> Labels { get; set; } = new();
+    public List<AssigneeModel> Assignees { get; set; } = new();
 }
