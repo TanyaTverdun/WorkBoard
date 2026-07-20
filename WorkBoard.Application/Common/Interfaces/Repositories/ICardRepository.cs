@@ -5,11 +5,11 @@ namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
 public interface ICardRepository : IGenericRepository<Card, Guid>
 {
-    Task<IReadOnlyList<Card>> GetCardsByBoardIdAsync(
+    Task<IReadOnlyList<CardSummaryModel>> GetCardsByBoardIdAsync(
         Guid boardId,
         CancellationToken cancellationToken = default);
 
-    Task<CardFullData?> GetCardFullDataAsync(
+    Task<CardFullDataModel?> GetCardFullDataAsync(
         Guid cardId,
         CancellationToken cancellationToken);
 

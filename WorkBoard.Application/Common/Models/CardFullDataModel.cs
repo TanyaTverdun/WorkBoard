@@ -2,7 +2,7 @@
 
 namespace WorkBoard.Application.Common.Models;
 
-public class CardFullData
+public class CardFullDataModel
 {
     public Card Card { get; set; } = null!;
     public List<User> Assignees { get; set; } = new();
