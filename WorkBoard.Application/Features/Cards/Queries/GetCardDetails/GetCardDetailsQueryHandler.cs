@@ -77,6 +77,7 @@ public class GetCardDetailsQueryHandler
             FullName = a.FullName ?? "Unknown",
             Email = a.Email,
             AvatarUrl = a.AvatarUrl,
+            AvatarColor = a.AvatarColor,
             Initials = InitialGenerator.Generate(a.FullName)
         }).ToList().AsReadOnly();
 

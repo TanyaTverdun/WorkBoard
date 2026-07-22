@@ -9,6 +9,7 @@ using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
+using static System.Collections.Specialized.BitVector32;
 
 namespace WorkBoard.Application.Features.Cards.Commands.MoveCard;
 
@@ -36,14 +37,15 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
         MoveCardCommand request, 
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
         var membership = await uow.BoardMemberRepository.GetMembershipAsync(
-            currentUserId,
+            currentUser.Id,
             request.BoardId,
             cancellationToken);
 
@@ -76,7 +78,7 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
         {
             Id = Guid.NewGuid(),
             CardId = card.Id,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.MovedCard(targetSection.Name),
             CreatedAt = DateTime.UtcNow
         };
@@ -102,8 +104,10 @@ public class MoveCardCommandHandler : IRequestHandler<MoveCardCommand, Unit>
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _boardNotificationService.SendActivityLogAddedAsync(
             targetSection.BoardId,

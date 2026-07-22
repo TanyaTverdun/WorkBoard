@@ -35,34 +35,41 @@ public class UpdateChecklistItemCommandHandler
         UpdateChecklistItemCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
         var checklistItem = await uow.ChecklistItemRepository.GetByIdAsync(
-            request.ItemId, cancellationToken)
+            request.ItemId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Checklist item with ID {request.ItemId} was not found.");
 
         var checklist = await uow.ChecklistRepository.GetByIdAsync(
-            checklistItem.ChecklistId, cancellationToken)
+            checklistItem.ChecklistId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Checklist with ID {checklistItem.ChecklistId} was not found.");
 
         var card = await uow.CardRepository.GetByIdAsync(
-            checklist.CardId, cancellationToken)
+            checklist.CardId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Card with ID {checklist.CardId} was not found.");
 
         var section = await uow.SectionRepository.GetByIdAsync(
-            card.SectionId, cancellationToken)
+            card.SectionId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Section with ID {card.SectionId} was not found.");
 
         var isCurrentMember = await uow.BoardMemberRepository.IsMemberAsync(
-            section.BoardId, currentUserId, cancellationToken);
+            section.BoardId, 
+            currentUser.Id, 
+            cancellationToken);
 
         if (!isCurrentMember)
         {
@@ -71,7 +78,8 @@ public class UpdateChecklistItemCommandHandler
         }
 
         var existingItems = await uow.ChecklistItemRepository.GetByChecklistIdAsync(
-            checklistItem.ChecklistId, cancellationToken);
+            checklistItem.ChecklistId, 
+            cancellationToken);
 
         if (existingItems.Any(x => x.Id != request.ItemId &&
                                    x.Title.Equals(
@@ -86,7 +94,7 @@ public class UpdateChecklistItemCommandHandler
         {
             Id = Guid.NewGuid(),
             CardId = card.Id,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.RenamedChecklistItem(
                 checklist.Name, 
                 request.Title),
@@ -95,7 +103,7 @@ public class UpdateChecklistItemCommandHandler
 
         checklistItem.Title = request.Title;
         checklistItem.UpdatedAt = DateTime.UtcNow;
-        checklistItem.UpdatedBy = currentUserId;
+        checklistItem.UpdatedBy = currentUser.Id;
 
         try
         {
@@ -116,8 +124,10 @@ public class UpdateChecklistItemCommandHandler
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,

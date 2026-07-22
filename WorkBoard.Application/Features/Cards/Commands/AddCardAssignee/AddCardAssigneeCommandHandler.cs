@@ -35,9 +35,10 @@ public class AddCardAssigneeCommandHandler
         AddCardAssigneeCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
@@ -55,7 +56,7 @@ public class AddCardAssigneeCommandHandler
 
         var isCurrentMember = await uow.BoardMemberRepository.IsMemberAsync(
             section.BoardId,
-            currentUserId,
+            currentUser.Id,
             cancellationToken);
 
         if (!isCurrentMember)
@@ -97,8 +98,8 @@ public class AddCardAssigneeCommandHandler
         {
             Id = Guid.NewGuid(),
             CardId = request.CardId,
-            UserId = currentUserId,
-            Text = ActivityLogMessages.AddedAssignee(user.FullName),
+            UserId = currentUser.Id,
+            Text = ActivityLogMessages.AddedAssignee(user.FullName!),
             CreatedAt = DateTime.UtcNow
         };
 
@@ -122,8 +123,10 @@ public class AddCardAssigneeCommandHandler
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,
@@ -136,6 +139,7 @@ public class AddCardAssigneeCommandHandler
             FullName = user.FullName ?? "Unknown",
             Email = user.Email,
             AvatarUrl = user.AvatarUrl,
+            AvatarColor = user.AvatarColor,
             Initials = InitialGenerator.Generate(user.FullName)
         };
 

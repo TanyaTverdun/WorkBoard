@@ -4,7 +4,6 @@ using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
-using WorkBoard.Domain.Entities;
 
 namespace WorkBoard.Application.Features.Boards.Queries.GetBoardMembers;
 
@@ -61,6 +60,7 @@ public class GetBoardMembersQueryHandler
             InitialGenerator.Generate(m.User.FullName),
             m.User.Email,
             m.User.AvatarUrl,
+            m.User.AvatarColor,
             m.Member.UserRole
         )).ToList().AsReadOnly();
     }

@@ -36,14 +36,15 @@ public class UpdateCardDueDateCommandHandler
         UpdateCardDueDateCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
         var membership = await uow.BoardMemberRepository.GetMembershipAsync(
-            currentUserId,
+            currentUser.Id,
             request.BoardId,
             cancellationToken);
 
@@ -67,13 +68,13 @@ public class UpdateCardDueDateCommandHandler
 
         card.DueDate = request.DueDate;
         card.UpdatedAt = DateTime.UtcNow;
-        card.UpdatedBy = currentUserId;
+        card.UpdatedBy = currentUser.Id;
 
         var log = new ActivityLog
         {
             Id = Guid.NewGuid(),
             CardId = card.Id,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.SetDueDate(request.DueDate),
             CreatedAt = DateTime.UtcNow
         };
@@ -95,8 +96,10 @@ public class UpdateCardDueDateCommandHandler
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,

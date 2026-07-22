@@ -30,7 +30,8 @@ public class UserCardRepository
                 u.UserId AS Id,
                 u.FullName,
                 u.Email,
-                u.AvatarUrl
+                u.AvatarUrl,
+                u.AvatarColor
             FROM 
                 UserCards uc
             INNER JOIN 
@@ -108,7 +109,8 @@ public class UserCardRepository
                 u.UserId AS Id,
                 u.FullName,
                 u.Email,
-                u.AvatarUrl
+                u.AvatarUrl,
+                u.AvatarColor
             FROM 
                 Users u
             INNER JOIN 

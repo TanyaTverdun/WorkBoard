@@ -20,16 +20,17 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
     }
 
     public async Task<User?> GetByIdOrEmailAsync(
-    Guid id,
-    string? email,
-    CancellationToken cancellationToken = default)
+        Guid id,
+        string? email,
+        CancellationToken cancellationToken = default)
     {
         const string sql = @"
         SELECT TOP 1
             UserId AS Id,
             FullName,
             Email,
-            AvatarUrl
+            AvatarUrl,
+            AvatarColor
         FROM 
             Users
         WHERE 
@@ -60,7 +61,8 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
                 UserId,
                 FullName,
                 Email,
-                AvatarUrl
+                AvatarUrl,
+                AvatarColor
             FROM 
                 Users
             WHERE 

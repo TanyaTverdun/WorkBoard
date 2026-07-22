@@ -35,29 +35,35 @@ public class AddChecklistItemCommandHandler
         AddChecklistItemCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
         var checklist = await uow.ChecklistRepository.GetByIdAsync(
-            request.ChecklistId, cancellationToken)
+            request.ChecklistId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Checklist with ID {request.ChecklistId} was not found.");
 
         var card = await uow.CardRepository.GetByIdAsync(
-            checklist.CardId, cancellationToken)
+            checklist.CardId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Card with ID {checklist.CardId} was not found.");
 
         var section = await uow.SectionRepository.GetByIdAsync(
-            card.SectionId, cancellationToken)
+            card.SectionId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Section with ID {card.SectionId} was not found.");
 
         var isCurrentMember = await uow.BoardMemberRepository.IsMemberAsync(
-            section.BoardId, currentUserId, cancellationToken);
+            section.BoardId, 
+            currentUser.Id, 
+            cancellationToken);
 
         if (!isCurrentMember)
         {
@@ -66,7 +72,8 @@ public class AddChecklistItemCommandHandler
         }
 
         var existingItems = await uow.ChecklistItemRepository.GetByChecklistIdAsync(
-            request.ChecklistId, cancellationToken);
+            request.ChecklistId, 
+            cancellationToken);
 
         if (existingItems.Any(x => x.Title.Equals(request.Title, StringComparison.OrdinalIgnoreCase)))
         {
@@ -81,14 +88,14 @@ public class AddChecklistItemCommandHandler
             Title = request.Title,
             IsDone = false,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = currentUserId
+            CreatedBy = currentUser.Id
         };
 
         var log = new ActivityLog
         {
             Id = Guid.NewGuid(),
             CardId = card.Id,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.AddedChecklistItem(request.Title),
             CreatedAt = DateTime.UtcNow
         };
@@ -112,8 +119,15 @@ public class AddChecklistItemCommandHandler
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
+            cancellationToken);
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,

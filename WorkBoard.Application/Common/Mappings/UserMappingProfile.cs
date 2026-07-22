@@ -27,5 +27,7 @@ public class UserMappingProfile : Profile
                 dest => dest.Initials,
                 opt => opt.Ignore()
             );
+
+        CreateMap<User, UserProfileDto>();
     }
 }

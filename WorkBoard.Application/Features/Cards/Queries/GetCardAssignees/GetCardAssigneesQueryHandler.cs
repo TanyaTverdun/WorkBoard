@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using WorkBoard.Application.Common.Dtos.BoardMembers;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -76,6 +75,7 @@ public class GetCardAssigneesQueryHandler
             FullName = a.FullName ?? "Unknown",
             Email = a.Email,
             AvatarUrl = a.AvatarUrl,
+            AvatarColor = a.AvatarColor,
             Initials = InitialGenerator.Generate(a.FullName)
         });
         

@@ -13,6 +13,18 @@ public class AuthUserCommandHandler
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IMapper _mapper;
 
+    private static readonly string[] AvatarColors = new[]
+    {
+        "#3b82f6",
+        "#8b5cf6",
+        "#10b981",
+        "#f59e0b",
+        "#ef4444",
+        "#ec4899",
+        "#84cc16",
+        "#475569",
+    };
+
     public AuthUserCommandHandler(
         IUserRepository userRepository,
         IUnitOfWorkFactory unitOfWorkFactory,
@@ -38,6 +50,7 @@ public class AuthUserCommandHandler
         }
 
         var user = _mapper.Map<UserEntity>(request);
+        user.AvatarColor = AvatarColors[new Random().Next(AvatarColors.Length)];
 
         using var uow = _unitOfWorkFactory.Create();
 

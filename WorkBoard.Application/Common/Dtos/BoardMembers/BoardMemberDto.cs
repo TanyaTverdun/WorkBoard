@@ -8,4 +8,5 @@ public record BoardMemberDto(
     string Initials,
     string Email,
     string? AvatarUrl,
+    string AvatarColor,
     BoardRole UserRole);

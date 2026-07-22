@@ -9,6 +9,6 @@ public class CardFullDataModel
     public List<Label> Labels { get; set; } = new();
     public Checklist? Checklist { get; set; }
     public List<Attachment> Attachments { get; set; } = new();
-    public List<Comment> Comments { get; set; } = new();
-    public List<ActivityLog> ActivityLogs { get; set; } = new();
+    public List<CommentModel> Comments { get; set; } = new();
+    public List<ActivityLogModel> ActivityLogs { get; set; } = new();
 }

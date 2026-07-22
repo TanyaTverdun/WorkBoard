@@ -39,14 +39,16 @@ public class DeleteAttachmentCommandHandler
         DeleteAttachmentCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
         var attachment = await uow.AttachmentRepository.GetByIdAsync(
-            request.AttachmentId, cancellationToken)
+            request.AttachmentId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Attachment with ID {request.AttachmentId} was not found.");
 
@@ -57,17 +59,21 @@ public class DeleteAttachmentCommandHandler
         }
 
         var card = await uow.CardRepository.GetByIdAsync(
-            attachment.CardId, cancellationToken)
+            attachment.CardId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Card with ID {attachment.CardId} was not found.");
 
         var section = await uow.SectionRepository.GetByIdAsync(
-            card.SectionId, cancellationToken)
+            card.SectionId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Section with ID {card.SectionId} was not found.");
 
         var isCurrentMember = await uow.BoardMemberRepository.IsMemberAsync(
-            section.BoardId, currentUserId, cancellationToken);
+            section.BoardId, 
+            currentUser.Id, 
+            cancellationToken);
 
         if (!isCurrentMember)
         {
@@ -84,7 +90,7 @@ public class DeleteAttachmentCommandHandler
         {
             Id = Guid.NewGuid(),
             CardId = request.CardId,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.DeletedAttachment(attachment.FileName),
             CreatedAt = DateTime.UtcNow
         };
@@ -108,8 +114,10 @@ public class DeleteAttachmentCommandHandler
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,

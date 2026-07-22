@@ -115,7 +115,8 @@ public class BoardMemberRepository
                 u.UserId AS Id, 
                 u.FullName, 
                 u.Email, 
-                u.AvatarUrl 
+                u.AvatarUrl,
+                u.AvatarColor
             FROM 
                 BoardMembers bm
             JOIN 
