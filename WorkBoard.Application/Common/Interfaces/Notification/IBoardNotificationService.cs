@@ -6,6 +6,7 @@ using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Common.Interfaces.Notification;
@@ -164,5 +165,10 @@ public interface IBoardNotificationService
     Task SendAttachmentDeletedAsync(
         Guid boardId,
         AttachmentDeletedDto data,
+        CancellationToken cancellationToken = default);
+
+    Task SendUserAvatarColorUpdatedAsync(
+        Guid boardId,
+        UserAvatarColorUpdatedDto data,
         CancellationToken cancellationToken = default);
 }
