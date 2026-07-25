@@ -92,4 +92,30 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
 
         return users.ToList().AsReadOnly();
     }
+
+    public async Task<int> UpdateAvatarColorAsync(
+        Guid userId,
+        string color,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                Users
+            SET 
+                AvatarColor = @AvatarColor
+            WHERE 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                AvatarColor = color
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
+    }
 }
