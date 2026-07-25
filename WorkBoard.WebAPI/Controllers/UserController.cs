@@ -5,6 +5,7 @@ using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Features.Boards.Queries.SearchAssignableUsers;
 using WorkBoard.Application.Features.User.Commands.RegisterUser;
+using WorkBoard.Application.Features.User.Commands.UpdateAvatarColor;
 using WorkBoard.Application.Features.User.Queries.GetCurrentUserProfile;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -142,5 +143,48 @@ public class UserController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Updates the avatar color of the currently authenticated user
+    /// </summary>
+    /// <param name="command">
+    /// The command containing the new HEX color
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to cancel the request
+    /// </param>
+    /// <returns>
+    /// No content upon successful update
+    /// </returns>
+    /// <response code="204">
+    /// The avatar color was successfully updated
+    /// </response>
+    /// <response code="400">
+    /// Bad request (invalid color format)
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="404">
+    /// The user was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpPatch("avatar-color")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateAvatarColor(
+        [FromBody] UpdateUserAvatarColorCommand command,
+        CancellationToken cancellationToken)
+    {
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
     }
 }
