@@ -9,6 +9,6 @@ public class CommentDto
     public DateTime CreatedAt { get; set; }
     public string? UserFullName { get; set; }
     public string? UserAvatarUrl { get; set; }
-    public required string UserAvatarColor { get; set; }
+    public string? UserAvatarColor { get; set; }
     public required string Initials { get; set; }
 }
