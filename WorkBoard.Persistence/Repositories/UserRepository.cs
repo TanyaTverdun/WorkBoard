@@ -102,7 +102,8 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
             UPDATE 
                 Users
             SET 
-                AvatarColor = @AvatarColor
+                AvatarColor = @AvatarColor,
+                AvatarUrl = NULL
             WHERE 
                 UserId = @UserId;";
 
@@ -112,6 +113,32 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
             {
                 UserId = userId,
                 AvatarColor = color
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<int> UpdateAvatarUrlAsync(
+        Guid userId,
+        string avatarUrl,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                Users
+            SET 
+                AvatarUrl = @AvatarUrl
+            WHERE 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                AvatarUrl = avatarUrl
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
