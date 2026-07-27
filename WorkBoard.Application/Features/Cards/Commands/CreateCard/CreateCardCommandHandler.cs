@@ -36,9 +36,10 @@ public class CreateCardCommandHandler
         CreateCardCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
@@ -49,7 +50,7 @@ public class CreateCardCommandHandler
                     $"Section with ID {request.SectionId} was not found.");
 
         var membership = await uow.BoardMemberRepository.GetMembershipAsync(
-            currentUserId,
+            currentUser.Id,
             section.BoardId,
             cancellationToken);
 
@@ -66,14 +67,14 @@ public class CreateCardCommandHandler
             Title = request.Title,
             Position = request.Position,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = currentUserId
+            CreatedBy = currentUser.Id
         };
 
         var log = new ActivityLog
         {
             Id = Guid.NewGuid(),
             CardId = newCard.Id,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.CreatedCard(section.Name),
             CreatedAt = DateTime.UtcNow
         };
@@ -102,8 +103,10 @@ public class CreateCardCommandHandler
             cancellationToken);
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,

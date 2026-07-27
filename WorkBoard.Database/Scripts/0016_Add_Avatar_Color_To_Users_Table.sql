@@ -1,0 +1,2 @@
+ALTER TABLE [Users]
+ADD [AvatarColor] VARCHAR(9) NULL DEFAULT NULL;

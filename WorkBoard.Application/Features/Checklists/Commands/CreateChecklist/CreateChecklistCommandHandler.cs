@@ -35,9 +35,10 @@ public class CreateChecklistCommandHandler
         CreateChecklistCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
@@ -55,7 +56,7 @@ public class CreateChecklistCommandHandler
 
         var isCurrentMember = await uow.BoardMemberRepository.IsMemberAsync(
             section.BoardId,
-            currentUserId,
+            currentUser.Id,
             cancellationToken);
 
         if (!isCurrentMember)
@@ -70,14 +71,14 @@ public class CreateChecklistCommandHandler
             CardId = request.CardId,
             Name = request.Name,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = currentUserId
+            CreatedBy = currentUser.Id
         };
 
         var log = new ActivityLog
         {
             Id = Guid.NewGuid(),
             CardId = card.Id,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.CreatedChecklist(request.Name),
             CreatedAt = DateTime.UtcNow
         };
@@ -101,8 +102,10 @@ public class CreateChecklistCommandHandler
         }
 
         var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
 
         await _notificationService.SendActivityLogAddedAsync(
             section.BoardId,

@@ -1,8 +1,10 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Boards.Queries.SearchAssignableUsers;
@@ -13,15 +15,18 @@ public class SearchAssignableUsersQueryHandler
     private readonly IBoardRepository _boardRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUserContext _userContext;
+    private readonly IBlobStorageService _blobStorageService;
 
     public SearchAssignableUsersQueryHandler(
         IBoardRepository boardRepository,
         IUserRepository userRepository,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBlobStorageService blobStorageService)
     {
         _boardRepository = boardRepository;
         _userRepository = userRepository;
         _userContext = userContext;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<IReadOnlyList<UserSearchDto>> Handle(
@@ -55,6 +60,12 @@ public class SearchAssignableUsersQueryHandler
         foreach (var user in usersFromDb)
         {
             user.Initials = InitialGenerator.Generate(user.FullName);
+            if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+            {
+                user.AvatarUrl = _blobStorageService.GetReadSasUrl(
+                    user.AvatarUrl,
+                    BlobContainers.Avatars);
+            }
         }
 
         return usersFromDb;

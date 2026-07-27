@@ -39,24 +39,29 @@ public class AddAttachmentCommandHandler
         AddAttachmentCommand request,
         CancellationToken cancellationToken)
     {
-        var currentUserId = _userContext.UserId
+        var currentUser = await _userContext.GetCurrentUserFullProfileAsync(
+            cancellationToken)
             ?? throw new UnauthorizedAccessException(
-                "User is not authenticated.");
+                "User profile not found in database.");
 
         using var uow = _unitOfWorkFactory.Create();
 
         var card = await uow.CardRepository.GetByIdAsync(
-            request.CardId, cancellationToken)
+            request.CardId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Card with ID {request.CardId} was not found.");
 
         var section = await uow.SectionRepository.GetByIdAsync(
-            card.SectionId, cancellationToken)
+            card.SectionId, 
+            cancellationToken)
                 ?? throw new NotFoundException(
                     $"Section with ID {card.SectionId} was not found.");
 
         var isCurrentMember = await uow.BoardMemberRepository.IsMemberAsync(
-            section.BoardId, currentUserId, cancellationToken);
+            section.BoardId, 
+            currentUser.Id, 
+            cancellationToken);
 
         if (!isCurrentMember)
         {
@@ -79,14 +84,14 @@ public class AddAttachmentCommandHandler
             FileName = request.FileName,
             FileSizeBytes = request.FileSizeBytes,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = currentUserId
+            CreatedBy = currentUser.Id
         };
 
         var log = new ActivityLog
         {
             Id = Guid.NewGuid(),
             CardId = request.CardId,
-            UserId = currentUserId,
+            UserId = currentUser.Id,
             Text = ActivityLogMessages.AttachedFile(request.FileName),
             CreatedAt = DateTime.UtcNow
         };
@@ -115,20 +120,22 @@ public class AddAttachmentCommandHandler
                 dto.FileUrl,
                 BlobContainers.Attachments);
 
-        var logDto = _mapper.Map<ActivityLogDto>(log);
-        logDto.FullName = _userContext.FullName!;
-        logDto.Initials = InitialGenerator.Generate(_userContext.FullName!);
-
-        await _notificationService.SendActivityLogAddedAsync(
-            section.BoardId, 
-            logDto, 
-            cancellationToken);
-
         var attachmentAddedDto = new AttachmentAddedDto(request.CardId, dto);
 
         await _notificationService.SendAttachmentAddedAsync(
             section.BoardId,
             attachmentAddedDto,
+            cancellationToken);
+
+        var logDto = _mapper.Map<ActivityLogDto>(log);
+        logDto.FullName = currentUser.FullName!;
+        logDto.Initials = InitialGenerator.Generate(currentUser.FullName);
+        logDto.AvatarUrl = currentUser.AvatarUrl;
+        logDto.AvatarColor = currentUser.AvatarColor;
+
+        await _notificationService.SendActivityLogAddedAsync(
+            section.BoardId,
+            logDto,
             cancellationToken);
 
         return dto;

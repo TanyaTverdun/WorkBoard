@@ -12,6 +12,10 @@ public class ActivityLogDto
 
     public string Initials { get; set; } = string.Empty;
 
+    public string? AvatarUrl { get; set; }
+
+    public string AvatarColor { get; set; } = string.Empty;
+
     public string Text { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }

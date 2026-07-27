@@ -76,7 +76,12 @@ public class GetCardDetailsQueryHandler
             UserId = a.Id,
             FullName = a.FullName ?? "Unknown",
             Email = a.Email,
-            AvatarUrl = a.AvatarUrl,
+            AvatarUrl = !string.IsNullOrWhiteSpace(a.AvatarUrl)
+                ? _blobStorageService.GetReadSasUrl(
+                    a.AvatarUrl, 
+                    BlobContainers.Avatars)
+                : a.AvatarUrl,
+            AvatarColor = a.AvatarColor,
             Initials = InitialGenerator.Generate(a.FullName)
         }).ToList().AsReadOnly();
 
@@ -96,6 +101,12 @@ public class GetCardDetailsQueryHandler
         foreach (var dto in commentsDtos)
         {
             dto.Initials = InitialGenerator.Generate(dto.UserFullName);
+            if (!string.IsNullOrWhiteSpace(dto.UserAvatarUrl))
+            {
+                dto.UserAvatarUrl = _blobStorageService.GetReadSasUrl(
+                    dto.UserAvatarUrl,
+                    BlobContainers.Avatars);
+            }
         }
 
         var activityLogsDtos = _mapper.Map<List<ActivityLogDto>>(
@@ -104,6 +115,12 @@ public class GetCardDetailsQueryHandler
         foreach (var dto in activityLogsDtos)
         {
             dto.Initials = InitialGenerator.Generate(dto.FullName);
+            if (!string.IsNullOrWhiteSpace(dto.AvatarUrl))
+            {
+                dto.AvatarUrl = _blobStorageService.GetReadSasUrl(
+                    dto.AvatarUrl,
+                    BlobContainers.Avatars);
+            }
         }
 
         var result = new CardDetailsDto

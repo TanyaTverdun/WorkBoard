@@ -7,6 +7,7 @@ using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Dtos.Section;
 using WorkBoard.Application.Common.Dtos.Sections;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 using WorkBoard.Infrastructure.Constants;
@@ -399,6 +400,18 @@ public class BoardNotificationService : IBoardNotificationService
             .SendAsync(
                 BoardHubEvents.AttachmentDeleted, 
                 data, 
+                cancellationToken);
+    }
+
+    public async Task SendUserAvatarUpdatedAsync(
+        Guid boardId,
+        UserAvatarUpdatedDto data,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(
+                BoardHubEvents.UserAvatarUpdated,
+                data,
                 cancellationToken);
     }
 }

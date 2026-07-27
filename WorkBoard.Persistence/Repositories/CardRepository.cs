@@ -97,7 +97,8 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                 u.UserId, 
                 u.FullName,
                 u.Email,
-                u.AvatarUrl
+                u.AvatarUrl,
+                u.AvatarColor
             FROM 
                 UserCards uc
             JOIN 
@@ -156,7 +157,8 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                     UserId = a.UserId,
                     FullName = a.FullName,
                     Email = a.Email,
-                    AvatarUrl = a.AvatarUrl
+                    AvatarUrl = a.AvatarUrl,
+                    AvatarColor = a.AvatarColor
                 }).ToList();
             }
         }
@@ -185,7 +187,8 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                 u.UserId AS Id, 
                 u.FullName, 
                 u.Email, 
-                u.AvatarUrl 
+                u.AvatarUrl,
+                u.AvatarColor
             FROM 
                 UserCards uc 
             INNER JOIN 
@@ -248,11 +251,14 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                 CreatedAt ASC;
 
             SELECT 
-                c.ComentId AS Id, 
+                c.ComentId AS Id,
+                c.CardId,
                 c.UserId, 
                 c.Text, 
                 c.CreatedAt, 
-                u.FullName AS UserFullName 
+                u.FullName AS UserFullName,
+                u.AvatarUrl AS UserAvatarUrl,
+                u.AvatarColor AS UserAvatarColor
             FROM 
                 Coments c 
             INNER JOIN 
@@ -269,7 +275,9 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
                al.UserId,
                al.Text,
                al.CreatedAt,
-               u.FullName 
+               u.FullName,
+               u.AvatarUrl,
+               u.AvatarColor
             FROM 
                 ActivityLogs al
             INNER JOIN 
@@ -316,8 +324,8 @@ public class CardRepository : GenericRepository<Card, Guid>, ICardRepository
         }
 
         result.Attachments = (await multi.ReadAsync<Attachment>()).ToList();
-        result.Comments = (await multi.ReadAsync<Comment>()).ToList();
-        result.ActivityLogs = (await multi.ReadAsync<ActivityLog>()).ToList();
+        result.Comments = (await multi.ReadAsync<CommentModel>()).ToList();
+        result.ActivityLogs = (await multi.ReadAsync<ActivityLogModel>()).ToList();
 
         return result;
     }

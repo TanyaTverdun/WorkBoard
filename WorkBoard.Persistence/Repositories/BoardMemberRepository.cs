@@ -115,7 +115,8 @@ public class BoardMemberRepository
                 u.UserId AS Id, 
                 u.FullName, 
                 u.Email, 
-                u.AvatarUrl 
+                u.AvatarUrl,
+                u.AvatarColor
             FROM 
                 BoardMembers bm
             JOIN 
@@ -223,5 +224,29 @@ public class BoardMemberRepository
             cancellationToken: cancellationToken);
 
         return await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<IEnumerable<Guid>> GetBoardIdsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                BoardId 
+            FROM 
+                BoardMembers 
+            WHERE 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                UserId = userId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
     }
 }

@@ -43,4 +43,8 @@ public interface IBoardMemberRepository
         Guid boardId,
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Guid>> GetBoardIdsByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

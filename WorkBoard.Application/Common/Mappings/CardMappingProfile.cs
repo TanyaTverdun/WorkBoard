@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Cards;
+using WorkBoard.Application.Common.Dtos.Comments;
 using WorkBoard.Application.Common.Dtos.Labels;
 using WorkBoard.Application.Common.Models;
 using WorkBoard.Domain.Entities;
@@ -37,6 +39,16 @@ public class CardMappingProfile : Profile
         CreateMap<AssigneeModel, CardAssigneeDto>()
             .ForMember(
                 dest => dest.Initials, 
+                opt => opt.Ignore());
+
+        CreateMap<CommentModel, CommentDto>()
+            .ForMember(
+                dest => dest.Initials,
+                opt => opt.Ignore());
+
+        CreateMap<ActivityLogModel, ActivityLogDto>()
+            .ForMember(
+                dest => dest.Initials,
                 opt => opt.Ignore());
 
         CreateMap<User, CardAssigneeDto>()

@@ -14,4 +14,14 @@ public interface IUserRepository : IGenericRepository<User, Guid>
         Guid boardId,
         string searchTerm,
         CancellationToken cancellationToken = default);
+
+    Task<int> UpdateAvatarColorAsync(
+        Guid userId,
+        string color,
+        CancellationToken cancellationToken = default);
+
+    Task<int> UpdateAvatarUrlAsync(
+        Guid userId,
+        string avatarUrl,
+        CancellationToken cancellationToken = default);
 }

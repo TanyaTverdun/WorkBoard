@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Cards.Queries.GetAssignableUsers;
@@ -17,6 +19,7 @@ public class GetAssignableUsersQueryHandler
     private readonly IUserCardRepository _userCardRepository;
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
+    private readonly IBlobStorageService _blobStorageService;
 
     public GetAssignableUsersQueryHandler(
         ICardRepository cardRepository,
@@ -24,7 +27,8 @@ public class GetAssignableUsersQueryHandler
         IBoardMemberRepository boardMemberRepository,
         IUserCardRepository userCardRepository,
         IUserContext userContext,
-        IMapper mapper)
+        IMapper mapper,
+        IBlobStorageService blobStorageService)
     {
         _cardRepository = cardRepository;
         _sectionRepository = sectionRepository;
@@ -32,6 +36,7 @@ public class GetAssignableUsersQueryHandler
         _userCardRepository = userCardRepository;
         _userContext = userContext;
         _mapper = mapper;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<IReadOnlyList<UserSearchDto>> Handle(
@@ -75,6 +80,13 @@ public class GetAssignableUsersQueryHandler
         foreach (var user in assignableUsers)
         {
             user.Initials = InitialGenerator.Generate(user.FullName);
+
+            if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+            {
+                user.AvatarUrl = _blobStorageService.GetReadSasUrl(
+                    user.AvatarUrl,
+                    BlobContainers.Avatars);
+            }
         }
 
         return assignableUsers;

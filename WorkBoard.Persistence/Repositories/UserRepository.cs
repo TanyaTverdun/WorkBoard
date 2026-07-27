@@ -20,16 +20,17 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
     }
 
     public async Task<User?> GetByIdOrEmailAsync(
-    Guid id,
-    string? email,
-    CancellationToken cancellationToken = default)
+        Guid id,
+        string? email,
+        CancellationToken cancellationToken = default)
     {
         const string sql = @"
         SELECT TOP 1
             UserId AS Id,
             FullName,
             Email,
-            AvatarUrl
+            AvatarUrl,
+            AvatarColor
         FROM 
             Users
         WHERE 
@@ -60,7 +61,8 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
                 UserId,
                 FullName,
                 Email,
-                AvatarUrl
+                AvatarUrl,
+                AvatarColor
             FROM 
                 Users
             WHERE 
@@ -89,5 +91,58 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
         var users = await _connection.QueryAsync<UserSearchDto>(command);
 
         return users.ToList().AsReadOnly();
+    }
+
+    public async Task<int> UpdateAvatarColorAsync(
+        Guid userId,
+        string color,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                Users
+            SET 
+                AvatarColor = @AvatarColor,
+                AvatarUrl = NULL
+            WHERE 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                AvatarColor = color
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<int> UpdateAvatarUrlAsync(
+        Guid userId,
+        string avatarUrl,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                Users
+            SET 
+                AvatarUrl = @AvatarUrl
+            WHERE 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                AvatarUrl = avatarUrl
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
     }
 }
