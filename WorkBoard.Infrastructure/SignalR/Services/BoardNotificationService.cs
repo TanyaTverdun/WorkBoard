@@ -403,14 +403,14 @@ public class BoardNotificationService : IBoardNotificationService
                 cancellationToken);
     }
 
-    public async Task SendUserAvatarColorUpdatedAsync(
+    public async Task SendUserAvatarUpdatedAsync(
         Guid boardId,
-        UserAvatarColorUpdatedDto data,
+        UserAvatarUpdatedDto data,
         CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(
-                BoardHubEvents.UserAvatarColorUpdated,
+                BoardHubEvents.UserAvatarUpdated,
                 data,
                 cancellationToken);
     }

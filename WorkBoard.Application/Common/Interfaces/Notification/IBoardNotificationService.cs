@@ -167,8 +167,8 @@ public interface IBoardNotificationService
         AttachmentDeletedDto data,
         CancellationToken cancellationToken = default);
 
-    Task SendUserAvatarColorUpdatedAsync(
+    Task SendUserAvatarUpdatedAsync(
         Guid boardId,
-        UserAvatarColorUpdatedDto data,
+        UserAvatarUpdatedDto data,
         CancellationToken cancellationToken = default);
 }

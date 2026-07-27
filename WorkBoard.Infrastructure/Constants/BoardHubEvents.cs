@@ -32,5 +32,5 @@ public static class BoardHubEvents
     public const string ChecklistItemStatusUpdated = "ChecklistItemStatusUpdated";
     public const string AttachmentAdded = "AttachmentAdded";
     public const string AttachmentDeleted = "AttachmentDeleted";
-    public const string UserAvatarColorUpdated = "UserAvatarColorUpdated";
+    public const string UserAvatarUpdated = "UserAvatarUpdated";
 }
