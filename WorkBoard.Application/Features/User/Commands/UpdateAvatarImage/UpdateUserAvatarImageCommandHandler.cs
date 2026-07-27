@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
@@ -14,8 +15,6 @@ public class UpdateUserAvatarImageCommandHandler
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _notificationService;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     public UpdateUserAvatarImageCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
@@ -41,7 +40,7 @@ public class UpdateUserAvatarImageCommandHandler
         var rawAvatarUrl = await _blobStorageService.UploadAsync(
             request.FileStream,
             request.FileName,
-            ContainerName,
+            BlobContainers.Avatars,
             request.ContentType,
             cancellationToken);
 
@@ -67,7 +66,7 @@ public class UpdateUserAvatarImageCommandHandler
             uow.Rollback();
             await _blobStorageService.DeleteAsync(
                 rawAvatarUrl, 
-                ContainerName, 
+                BlobContainers.Avatars, 
                 cancellationToken);
             throw;
         }
@@ -76,13 +75,13 @@ public class UpdateUserAvatarImageCommandHandler
         {
             await _blobStorageService.DeleteAsync(
                     currentUser.AvatarUrl,
-                    ContainerName,
+                    BlobContainers.Avatars,
                     cancellationToken);
         }
 
         var sasAvatarUrl = _blobStorageService.GetReadSasUrl(
             rawAvatarUrl,
-            ContainerName);
+            BlobContainers.Avatars);
 
         var userBoardIds = await uow.BoardMemberRepository.GetBoardIdsByUserIdAsync(
                 currentUser.Id,

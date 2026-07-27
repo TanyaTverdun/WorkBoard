@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
@@ -15,8 +16,6 @@ namespace WorkBoard.Application.Features.User.Commands.UpdateAvatarColorж
         private readonly IUserContext _userContext;
         private readonly IBoardNotificationService _notificationService;
         private readonly IBlobStorageService _blobStorageService;
-
-        private const string ContainerName = "avatars";
 
         public UpdateUserAvatarColorCommandHandler(
             IUnitOfWorkFactory unitOfWorkFactory,
@@ -66,7 +65,7 @@ namespace WorkBoard.Application.Features.User.Commands.UpdateAvatarColorж
             {
                 await _blobStorageService.DeleteAsync(
                     currentUser.AvatarUrl,
-                    ContainerName,
+                    BlobContainers.Avatars,
                     cancellationToken);
             }
 

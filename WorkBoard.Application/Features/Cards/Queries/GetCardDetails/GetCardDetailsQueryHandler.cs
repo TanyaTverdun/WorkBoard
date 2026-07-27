@@ -25,8 +25,6 @@ public class GetCardDetailsQueryHandler
     private readonly IMapper _mapper;
     private readonly IUserContext _userContext;
 
-    private const string ContainerName = "avatars";
-
     public GetCardDetailsQueryHandler(
         ICardRepository cardRepository,
         ISectionRepository sectionRepository,
@@ -79,7 +77,9 @@ public class GetCardDetailsQueryHandler
             FullName = a.FullName ?? "Unknown",
             Email = a.Email,
             AvatarUrl = !string.IsNullOrWhiteSpace(a.AvatarUrl)
-                ? _blobStorageService.GetReadSasUrl(a.AvatarUrl, ContainerName)
+                ? _blobStorageService.GetReadSasUrl(
+                    a.AvatarUrl, 
+                    BlobContainers.Avatars)
                 : a.AvatarUrl,
             AvatarColor = a.AvatarColor,
             Initials = InitialGenerator.Generate(a.FullName)
@@ -105,7 +105,7 @@ public class GetCardDetailsQueryHandler
             {
                 dto.UserAvatarUrl = _blobStorageService.GetReadSasUrl(
                     dto.UserAvatarUrl,
-                    ContainerName);
+                    BlobContainers.Avatars);
             }
         }
 
@@ -119,7 +119,7 @@ public class GetCardDetailsQueryHandler
             {
                 dto.AvatarUrl = _blobStorageService.GetReadSasUrl(
                     dto.AvatarUrl,
-                    ContainerName);
+                    BlobContainers.Avatars);
             }
         }
 

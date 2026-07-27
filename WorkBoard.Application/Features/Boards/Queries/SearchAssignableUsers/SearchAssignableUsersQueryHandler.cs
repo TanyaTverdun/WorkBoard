@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -15,8 +16,6 @@ public class SearchAssignableUsersQueryHandler
     private readonly IUserRepository _userRepository;
     private readonly IUserContext _userContext;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     public SearchAssignableUsersQueryHandler(
         IBoardRepository boardRepository,
@@ -65,7 +64,7 @@ public class SearchAssignableUsersQueryHandler
             {
                 user.AvatarUrl = _blobStorageService.GetReadSasUrl(
                     user.AvatarUrl,
-                    ContainerName);
+                    BlobContainers.Avatars);
             }
         }
 

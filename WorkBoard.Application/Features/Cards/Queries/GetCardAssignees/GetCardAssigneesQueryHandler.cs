@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -17,8 +18,6 @@ public class GetCardAssigneesQueryHandler
     private readonly IBoardMemberRepository _boardMemberRepository;
     private readonly IUserContext _userContext;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     public GetCardAssigneesQueryHandler(
         IUserCardRepository userCardRepository,
@@ -81,7 +80,9 @@ public class GetCardAssigneesQueryHandler
             FullName = a.FullName ?? "Unknown",
             Email = a.Email,
             AvatarUrl = !string.IsNullOrWhiteSpace(a.AvatarUrl)
-                ? _blobStorageService.GetReadSasUrl(a.AvatarUrl, ContainerName)
+                ? _blobStorageService.GetReadSasUrl(
+                    a.AvatarUrl, 
+                    BlobContainers.Avatars)
                 : a.AvatarUrl,
             AvatarColor = a.AvatarColor,
             Initials = InitialGenerator.Generate(a.FullName)

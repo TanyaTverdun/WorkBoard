@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.BoardMembers;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -14,8 +15,6 @@ public class GetBoardMembersQueryHandler
     private readonly IBoardMemberRepository _boardMemberRepository;
     private readonly IUserContext _userContext;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     public GetBoardMembersQueryHandler(
         IBoardMemberRepository boardMemberRepository,
@@ -66,7 +65,9 @@ public class GetBoardMembersQueryHandler
             InitialGenerator.Generate(m.User.FullName),
             m.User.Email,
             m.User.AvatarUrl = !string.IsNullOrWhiteSpace(m.User.AvatarUrl)
-                ? _blobStorageService.GetReadSasUrl(m.User.AvatarUrl, ContainerName)
+                ? _blobStorageService.GetReadSasUrl(
+                    m.User.AvatarUrl, 
+                    BlobContainers.Avatars)
                 : m.User.AvatarUrl,
             m.User.AvatarColor,
             m.Member.UserRole

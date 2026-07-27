@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
@@ -19,8 +20,6 @@ public class GetAssignableUsersQueryHandler
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     public GetAssignableUsersQueryHandler(
         ICardRepository cardRepository,
@@ -86,7 +85,7 @@ public class GetAssignableUsersQueryHandler
             {
                 user.AvatarUrl = _blobStorageService.GetReadSasUrl(
                     user.AvatarUrl,
-                    ContainerName);
+                    BlobContainers.Avatars);
             }
         }
 

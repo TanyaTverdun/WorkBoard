@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
@@ -13,8 +14,6 @@ public class GetCurrentUserProfileQueryHandler
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     public GetCurrentUserProfileQueryHandler(
         IUserContext userContext,
@@ -42,7 +41,7 @@ public class GetCurrentUserProfileQueryHandler
         {
             userDto.AvatarUrl = _blobStorageService.GetReadSasUrl(
                 userDto.AvatarUrl,
-                ContainerName);
+                BlobContainers.Avatars);
         }
 
         return userDto;

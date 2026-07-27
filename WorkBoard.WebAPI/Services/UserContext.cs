@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
@@ -11,8 +12,6 @@ public class UserContext : IUserContext
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserRepository _userRepository;
     private readonly IBlobStorageService _blobStorageService;
-
-    private const string ContainerName = "avatars";
 
     private const string AzureOidClaim = 
         "http://schemas.microsoft.com/identity/claims/objectidentifier";
@@ -66,7 +65,7 @@ public class UserContext : IUserContext
         {
             user.AvatarUrl = _blobStorageService.GetReadSasUrl(
                 user.AvatarUrl,
-                ContainerName);
+                BlobContainers.Avatars);
         }
 
         return user;
