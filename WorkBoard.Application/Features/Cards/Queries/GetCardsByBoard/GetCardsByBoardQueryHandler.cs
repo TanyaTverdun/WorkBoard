@@ -4,6 +4,7 @@ using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Cards.Queries.GetCardsByBoard;
@@ -15,17 +16,22 @@ public class GetCardsByBoardQueryHandler
     private readonly IMapper _mapper;
     private readonly IBoardMemberRepository _boardMemberRepository;
     private readonly IUserContext _userContext;
+    private readonly IBlobStorageService _blobStorageService;
+
+    private const string ContainerName = "avatars";
 
     public GetCardsByBoardQueryHandler(
         ICardRepository cardRepository,
         IMapper mapper,
         IBoardMemberRepository boardMemberRepository,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBlobStorageService blobStorageService)
     {
         _cardRepository = cardRepository;
         _mapper = mapper;
         _boardMemberRepository = boardMemberRepository;
         _userContext = userContext;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<IReadOnlyList<CardDto>> Handle(
@@ -62,6 +68,12 @@ public class GetCardsByBoardQueryHandler
             foreach (var assignee in card.Assignees)
             {
                 assignee.Initials = InitialGenerator.Generate(assignee.FullName);
+                if (!string.IsNullOrWhiteSpace(assignee.AvatarUrl))
+                {
+                    assignee.AvatarUrl = _blobStorageService.GetReadSasUrl(
+                        assignee.AvatarUrl,
+                        ContainerName);
+                }
             }
         }
 

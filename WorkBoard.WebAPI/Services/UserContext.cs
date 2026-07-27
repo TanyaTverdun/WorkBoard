@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
 
@@ -9,7 +10,9 @@ public class UserContext : IUserContext
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserRepository _userRepository;
-    private User? _cachedUser;
+    private readonly IBlobStorageService _blobStorageService;
+
+    private const string ContainerName = "avatars";
 
     private const string AzureOidClaim = 
         "http://schemas.microsoft.com/identity/claims/objectidentifier";
@@ -18,10 +21,12 @@ public class UserContext : IUserContext
 
     public UserContext(
         IHttpContextAccessor httpContextAccessor,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IBlobStorageService blobStorageService)
     {
         _httpContextAccessor = httpContextAccessor;
         _userRepository = userRepository;
+        _blobStorageService = blobStorageService;
     }
 
     private ClaimsPrincipal? User => _httpContextAccessor.HttpContext?.User;
@@ -47,21 +52,23 @@ public class UserContext : IUserContext
     public async Task<User?> GetCurrentUserFullProfileAsync(
         CancellationToken cancellationToken = default)
     {
-        if (_cachedUser != null)
-        {
-            return _cachedUser;
-        }
-
         var userId = UserId;
         if (userId == null)
         {
             return null;
         }
 
-        _cachedUser = await _userRepository.GetByIdAsync(
+        var user = await _userRepository.GetByIdAsync(
             userId.Value, 
             cancellationToken);
 
-        return _cachedUser;
+        if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+        {
+            user.AvatarUrl = _blobStorageService.GetReadSasUrl(
+                user.AvatarUrl,
+                ContainerName);
+        }
+
+        return user;
     }
 }

@@ -3,6 +3,7 @@ using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Cards.Queries.GetCardAssignees;
@@ -15,19 +16,24 @@ public class GetCardAssigneesQueryHandler
     private readonly ISectionRepository _sectionRepository;
     private readonly IBoardMemberRepository _boardMemberRepository;
     private readonly IUserContext _userContext;
+    private readonly IBlobStorageService _blobStorageService;
+
+    private const string ContainerName = "avatars";
 
     public GetCardAssigneesQueryHandler(
         IUserCardRepository userCardRepository,
         ICardRepository cardRepository,
         ISectionRepository sectionRepository,
         IBoardMemberRepository boardMemberRepository,
-        IUserContext userContext)
+        IUserContext userContext,
+        IBlobStorageService blobStorageService)
     {
         _userCardRepository = userCardRepository;
         _cardRepository = cardRepository;
         _sectionRepository = sectionRepository;
         _boardMemberRepository = boardMemberRepository;
         _userContext = userContext;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<IReadOnlyList<CardAssigneeDto>> Handle(
@@ -74,7 +80,9 @@ public class GetCardAssigneesQueryHandler
             UserId = a.Id,
             FullName = a.FullName ?? "Unknown",
             Email = a.Email,
-            AvatarUrl = a.AvatarUrl,
+            AvatarUrl = !string.IsNullOrWhiteSpace(a.AvatarUrl)
+                ? _blobStorageService.GetReadSasUrl(a.AvatarUrl, ContainerName)
+                : a.AvatarUrl,
             AvatarColor = a.AvatarColor,
             Initials = InitialGenerator.Generate(a.FullName)
         });
