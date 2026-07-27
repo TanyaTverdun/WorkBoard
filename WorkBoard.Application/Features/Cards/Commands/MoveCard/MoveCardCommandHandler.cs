@@ -9,7 +9,6 @@ using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
-using static System.Collections.Specialized.BitVector32;
 
 namespace WorkBoard.Application.Features.Cards.Commands.MoveCard;
 
