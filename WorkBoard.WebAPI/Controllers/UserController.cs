@@ -6,6 +6,7 @@ using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Features.Boards.Queries.SearchAssignableUsers;
 using WorkBoard.Application.Features.User.Commands.RegisterUser;
 using WorkBoard.Application.Features.User.Commands.UpdateAvatarColor;
+using WorkBoard.Application.Features.User.Commands.UpdateAvatarImage;
 using WorkBoard.Application.Features.User.Queries.GetCurrentUserProfile;
 
 namespace WorkBoard.WebAPI.Controllers;
@@ -186,5 +187,60 @@ public class UserController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Updates the avatar image of the currently authenticated user
+    /// </summary>
+    /// <param name="file">
+    /// The image file to upload (max 5 MB)
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to cancel the request
+    /// </param>
+    /// <returns>
+    /// The new avatar URL
+    /// </returns>
+    /// <response code="200">
+    /// The avatar image was successfully updated
+    /// </response>
+    /// <response code="400">
+    /// Bad request (e.g., file too large or not an image)
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpPatch("avatar-image")]
+    [Authorize]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateAvatarImage(
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("File is empty or not provided.");
+        }
+
+        using var stream = file.OpenReadStream();
+
+        var command = new UpdateUserAvatarImageCommand
+        {
+            FileStream = stream,
+            FileName = file.FileName,
+            ContentType = file.ContentType,
+            Length = file.Length
+        };
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok();
     }
 }
