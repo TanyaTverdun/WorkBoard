@@ -93,4 +93,50 @@ public class BoardRepository
 
         await _connection.ExecuteAsync(command);
     }
+
+    public async Task SetArchiveStatusAsync(
+        Guid boardId,
+        BoardArchiveStatus archiveStatus,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE Boards 
+            SET 
+                ArchiveStatus = @ArchiveStatus
+            WHERE 
+                BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                ArchiveStatus = (int)archiveStatus,
+                BoardId = boardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<IEnumerable<Guid>> GetBoardIdsByArchiveStatusAsync(
+        BoardArchiveStatus archiveStatus,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT BoardId 
+            FROM Boards 
+            WHERE ArchiveStatus = @ArchiveStatus;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                ArchiveStatus = (int)archiveStatus 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
+    }
 }
