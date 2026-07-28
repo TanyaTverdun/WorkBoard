@@ -4,11 +4,12 @@ using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
-public class BoardRepository :
-GenericRepository<Board, Guid>, IBoardRepository
+public class BoardRepository 
+    : GenericRepository<Board, Guid>, IBoardRepository
 {
     public BoardRepository(IDbConnectionFactory connectionFactory)
         : base(connectionFactory)
@@ -58,5 +59,38 @@ GenericRepository<Board, Guid>, IBoardRepository
         var boards = await _connection.QueryAsync<BoardDto>(command);
 
         return boards.ToList().AsReadOnly();
+    }
+
+    public async Task UpdateArchiveStatusAsync(
+        Guid boardId,
+        bool isArchived,
+        BoardArchiveStatus archiveStatus,
+        Guid updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE Boards 
+            SET 
+                IsArchived = @IsArchived,
+                ArchiveStatus = @ArchiveStatus,
+                UpdatedAt = @UpdatedAt,
+                UpdatedBy = @UpdatedBy
+            WHERE 
+                BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                IsArchived = isArchived,
+                ArchiveStatus = (int)archiveStatus,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = updatedBy,
+                BoardId = boardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
     }
 }
