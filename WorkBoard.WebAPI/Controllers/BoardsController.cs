@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Common.Dtos.BoardMembers;
 using WorkBoard.Application.Features.Boards.Commands.AddBoardMember;
+using WorkBoard.Application.Features.Boards.Commands.ArchiveBoard;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
 using WorkBoard.Application.Features.Boards.Commands.DeleteBoard;
 using WorkBoard.Application.Features.Boards.Commands.RemoveBoardMember;
@@ -474,6 +475,54 @@ public class BoardsController : ControllerBase
         await _mediator.Send(
             command, 
             cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Initiates the archivation process for an existing board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board to archive
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// An empty OK response if the archivation process has been queued
+    /// </returns>
+    /// <response code="200">
+    /// The board archivation process was successfully initiated
+    /// </response>
+    /// <response code="400">
+    /// The board is already archived or in progress
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// The user does not have permission to archive this board
+    /// </response>
+    /// <response code="404">
+    /// The specified board was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpPost("{boardId:guid}/archive")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ArchiveBoard(
+        Guid boardId,
+        CancellationToken cancellationToken)
+    {
+        var command = new ArchiveBoardCommand(boardId);
+
+        await _mediator.Send(command, cancellationToken);
 
         return Ok();
     }
