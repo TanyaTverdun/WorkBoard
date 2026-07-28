@@ -7,4 +7,6 @@ public class AzureOptions
     public SignalROptions SignalR { get; set; } = new();
 
     public BlobStorageOptions? BlobStorage { get; set; }
+
+    public ServiceBusOptions? ServiceBus { get; set; }
 }
