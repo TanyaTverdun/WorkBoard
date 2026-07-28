@@ -44,9 +44,16 @@ public static class DependencyInjection
                 "Azure Blob Storage Connection String is missing in appsettings.json");
         }
 
+        if (string.IsNullOrEmpty(azureOptions.ServiceBus?.ConnectionString))
+        {
+            throw new InvalidOperationException(
+                "Azure Service Bus Connection String is missing in appsettings.json");
+        }
+
         services.AddAzureClients(clientBuilder =>
         {
             clientBuilder.AddBlobServiceClient(azureOptions.BlobStorage.ConnectionString);
+            clientBuilder.AddServiceBusClient(azureOptions.ServiceBus.ConnectionString);
         });
 
         services.AddHangfire(config => config
