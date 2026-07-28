@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.Identity.Web;
 using WorkBoard.Application;
 using WorkBoard.Database;
@@ -60,6 +61,8 @@ app.UseCors(WorkBoard.WebAPI.DependencyInjection.BlazorWasmPolicyName);
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire");
 
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");

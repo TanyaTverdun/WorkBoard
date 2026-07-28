@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Azure;
+﻿using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
@@ -11,6 +13,9 @@ namespace WorkBoard.Infrastructure;
 
 public static class DependencyInjection
 {
+    private const string DefaultConnection = "DefaultConnection";
+    private const string HangfireSchema = "hangfire";
+
     public static IServiceCollection AddInfrastructureServices(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -43,6 +48,24 @@ public static class DependencyInjection
         {
             clientBuilder.AddBlobServiceClient(azureOptions.BlobStorage.ConnectionString);
         });
+
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(
+                configuration.GetConnectionString(DefaultConnection), 
+                new SqlServerStorageOptions
+                {
+                    SchemaName = HangfireSchema,
+                    PrepareSchemaIfNecessary = true,
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true
+                }));
+
+        services.AddHangfireServer();
 
         services.AddTransient<IBoardNotificationService, BoardNotificationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
