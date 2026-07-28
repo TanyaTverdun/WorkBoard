@@ -4,6 +4,8 @@ using WorkBoard.Application;
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
 using WorkBoard.Infrastructure;
+using WorkBoard.Infrastructure.Constants;
+using WorkBoard.Infrastructure.Hangfire;
 using WorkBoard.Infrastructure.SignalR.Hubs;
 using WorkBoard.Persistence;
 using WorkBoard.WebAPI;
@@ -63,6 +65,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseHangfireDashboard("/hangfire");
+
+RecurringJob.AddOrUpdate<BoardArchivationJob>(
+    HangfireJobIds.ProcessPendingArchivationBoards,
+    job => job.ProcessPendingBoardsAsync(),
+    Cron.Minutely());
 
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
