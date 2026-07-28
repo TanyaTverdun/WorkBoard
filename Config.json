@@ -1,0 +1,17 @@
+{
+  "UserConfig": {
+    "Namespaces": [
+      {
+        "Name": "sbemulator",
+        "Queues": [
+          {
+            "Name": "archivation-queue"
+          }
+        ]
+      }
+    ],
+    "Logging": {
+      "Type": "Console"
+    }
+  }
+}
