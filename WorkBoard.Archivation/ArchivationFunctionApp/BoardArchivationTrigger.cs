@@ -1,16 +1,14 @@
-using ArchivationFunctionApp.Constants;
-using ArchivationFunctionApp.DTOs;
-using ArchivationFunctionApp.Enums;
-using ArchivationFunctionApp.Interfaces;
-using ArchivationFunctionApp.Options;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using WorkBoard.Archivation.DataAccess.Abstractions.Interfaces;
+using WorkBoard.Archivation.Domain.Constants;
+using WorkBoard.Archivation.Domain.DTOs;
+using WorkBoard.Archivation.Domain.Enums;
+using WorkBoard.Archivation.Services.Abstractions.Interfaces;
 
 namespace ArchivationFunctionApp;
 
@@ -18,21 +16,19 @@ public class BoardArchivationTrigger
 {
     private readonly ILogger<BoardArchivationTrigger> _logger;
     private readonly IBoardArchiveRepository _repository;
-    private readonly BlobServiceClient _blobServiceClient;
-    private readonly BlobStorageOptions _blobOptions;
+    private readonly IBlobArchivationService _blobService;
     private readonly IArchivationTrackerService _tracker;
 
     public BoardArchivationTrigger(
         ILogger<BoardArchivationTrigger> logger,
         IBoardArchiveRepository repository,
         BlobServiceClient blobServiceClient,
-        IOptions<BlobStorageOptions> blobOptions,
+        IBlobArchivationService blobService,
         IArchivationTrackerService tracker)
     {
         _logger = logger;
         _repository = repository;
-        _blobServiceClient = blobServiceClient;
-        _blobOptions = blobOptions.Value;
+        _blobService = blobService;
         _tracker = tracker;
     }
 
@@ -125,16 +121,9 @@ public class BoardArchivationTrigger
                 boardArchive, 
                 jsonOptions);
 
-            var containerClient = _blobServiceClient.GetBlobContainerClient(
-                _blobOptions.ContainerName);
-
-            await containerClient.CreateIfNotExistsAsync();
-
             string fileName = $"board_{boardId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json";
-            var blobClient = containerClient.GetBlobClient(fileName);
 
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonContent));
-            await blobClient.UploadAsync(stream, overwrite: true);
+            await _blobService.UploadArchiveAsync(fileName, jsonContent);
 
             await _tracker.TrackStatusAsync(
                 boardId, 
