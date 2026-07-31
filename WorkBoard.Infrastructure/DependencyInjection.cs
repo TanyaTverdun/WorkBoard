@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Database.Options;
 using WorkBoard.Infrastructure.BlobStorage;
 using WorkBoard.Infrastructure.Options;
 using WorkBoard.Infrastructure.SignalR.Services;
@@ -13,13 +14,16 @@ namespace WorkBoard.Infrastructure;
 
 public static class DependencyInjection
 {
-    private const string DefaultConnection = "DefaultConnection";
-    private const string HangfireSchema = "hangfire";
-
     public static IServiceCollection AddInfrastructureServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var databaseOptions = configuration
+            .GetSection(DatabaseOptions.SectionName)
+            .Get<DatabaseOptions>()
+                ?? throw new InvalidOperationException(
+                    "Database section is missing in appsettings.json");
+
         services.Configure<AzureOptions>(
             configuration.GetSection(AzureOptions.SectionName));
 
@@ -61,10 +65,10 @@ public static class DependencyInjection
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
             .UseSqlServerStorage(
-                configuration.GetConnectionString(DefaultConnection), 
+                databaseOptions.ConnectionString,
                 new SqlServerStorageOptions
                 {
-                    SchemaName = HangfireSchema,
+                    SchemaName = ServiceBusOptions.HangfireSchema,
                     PrepareSchemaIfNecessary = true,
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),

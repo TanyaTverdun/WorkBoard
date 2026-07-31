@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
+    <ProjectReference Include="..\WorkBoard.Database\WorkBoard.Database.csproj" />
   </ItemGroup>
 
   <ItemGroup>
