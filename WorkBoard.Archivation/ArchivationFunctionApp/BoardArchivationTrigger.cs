@@ -20,17 +20,20 @@ public class BoardArchivationTrigger
     private readonly IBoardArchiveRepository _repository;
     private readonly BlobServiceClient _blobServiceClient;
     private readonly BlobStorageOptions _blobOptions;
+    private readonly IArchivationTrackerService _tracker;
 
     public BoardArchivationTrigger(
         ILogger<BoardArchivationTrigger> logger,
         IBoardArchiveRepository repository,
         BlobServiceClient blobServiceClient,
-        IOptions<BlobStorageOptions> blobOptions)
+        IOptions<BlobStorageOptions> blobOptions,
+        IArchivationTrackerService tracker)
     {
         _logger = logger;
         _repository = repository;
         _blobServiceClient = blobServiceClient;
         _blobOptions = blobOptions.Value;
+        _tracker = tracker;
     }
 
     [Function(nameof(BoardArchivationTrigger))]
@@ -64,6 +67,11 @@ public class BoardArchivationTrigger
             {
                 boardId = parsedMessage.BoardId;
             }
+
+            await _tracker.TrackStatusAsync(
+                boardId,
+                "Started",
+                "Archivation process initiated.");
         }
         catch (JsonException)
         {
@@ -96,6 +104,12 @@ public class BoardArchivationTrigger
                 _logger.LogWarning(
                     "Board with ID {boardId} was not found in database.", 
                     boardId);
+
+                await _tracker.TrackStatusAsync(
+                    boardId, 
+                    "Warning", 
+                    "Board data not found in DB.");
+
                 await messageActions.CompleteMessageAsync(message);
                 return;
             }
@@ -122,6 +136,11 @@ public class BoardArchivationTrigger
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonContent));
             await blobClient.UploadAsync(stream, overwrite: true);
 
+            await _tracker.TrackStatusAsync(
+                boardId, 
+                "BlobUploaded", 
+                $"File {fileName} created in Blob Storage.");
+
             _logger.LogInformation(
                 "Successfully archived board {boardId} to blob {fileName}", 
                 boardId, 
@@ -131,6 +150,11 @@ public class BoardArchivationTrigger
                 boardId,
                 BoardArchiveStatus.Archived,
                 cancellationToken);
+
+            await _tracker.TrackStatusAsync(
+                boardId, 
+                "Completed", 
+                "Database status updated to Archived.");
 
             await messageActions.CompleteMessageAsync(
                 message,
@@ -142,6 +166,11 @@ public class BoardArchivationTrigger
                 ex, 
                 "Failed to archive board {boardId}", 
                 boardId);
+
+            await _tracker.TrackStatusAsync(
+                boardId, 
+                "Failed", 
+                $"Error: {ex.Message}");
 
             throw;
         }
