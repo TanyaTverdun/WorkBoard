@@ -54,6 +54,7 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddScoped<IDbConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IBoardArchiveRepository, BoardArchiveRepository>();
+builder.Services.AddScoped<IArchivationTrackerService, CosmosDbTrackerService>();
 
 builder.Services.AddOpenTelemetry()
     .UseFunctionsWorkerDefaults()
