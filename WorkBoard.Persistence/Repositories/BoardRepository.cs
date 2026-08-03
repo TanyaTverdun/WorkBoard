@@ -119,7 +119,7 @@ public class BoardRepository
         await _connection.ExecuteAsync(command);
     }
 
-    public async Task<IEnumerable<Guid>> GetBoardIdsByArchiveStatusAsync(
+    public async Task<IEnumerable<Guid>> GetBoardIdsByStatusAsync(
         BoardArchiveStatus archiveStatus,
         CancellationToken cancellationToken = default)
     {

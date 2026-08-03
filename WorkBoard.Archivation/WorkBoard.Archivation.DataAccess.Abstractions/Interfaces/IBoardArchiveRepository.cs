@@ -13,4 +13,8 @@ public interface IBoardArchiveRepository
         Guid boardId,
         BoardArchiveStatus archiveStatus,
         CancellationToken cancellationToken = default);
+
+    Task RestoreBoardDataAsync(
+        BoardArchiveDto board,
+        CancellationToken cancellationToken = default);
 }
