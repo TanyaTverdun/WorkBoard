@@ -1,5 +1,4 @@
 using Azure.Messaging.ServiceBus;
-using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Text.Encodings.Web;
@@ -22,7 +21,6 @@ public class BoardArchivationTrigger
     public BoardArchivationTrigger(
         ILogger<BoardArchivationTrigger> logger,
         IBoardArchiveRepository repository,
-        BlobServiceClient blobServiceClient,
         IBlobArchivationService blobService,
         IArchivationTrackerService tracker)
     {
@@ -121,7 +119,7 @@ public class BoardArchivationTrigger
                 boardArchive, 
                 jsonOptions);
 
-            string fileName = $"board_{boardId}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json";
+            string fileName = $"board_{boardId}.json";
 
             await _blobService.UploadArchiveAsync(fileName, jsonContent);
 
