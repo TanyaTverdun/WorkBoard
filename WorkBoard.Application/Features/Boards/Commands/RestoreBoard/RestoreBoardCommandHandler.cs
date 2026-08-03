@@ -3,14 +3,14 @@ using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Domain.Enums;
 
-namespace WorkBoard.Application.Features.Boards.Commands.ArchiveBoard;
+namespace WorkBoard.Application.Features.Boards.Commands.RestoreBoard;
 
-public class ArchiveBoardCommandHandler : IRequestHandler<ArchiveBoardCommand>
+public class RestoreBoardCommandHandler : IRequestHandler<RestoreBoardCommand>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
 
-    public ArchiveBoardCommandHandler(
+    public RestoreBoardCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext)
     {
@@ -19,8 +19,8 @@ public class ArchiveBoardCommandHandler : IRequestHandler<ArchiveBoardCommand>
     }
 
     public async Task Handle(
-    ArchiveBoardCommand request,
-    CancellationToken cancellationToken)
+        RestoreBoardCommand request,
+        CancellationToken cancellationToken)
     {
         var currentUserId = _userContext.UserId
             ?? throw new UnauthorizedAccessException(
@@ -39,18 +39,18 @@ public class ArchiveBoardCommandHandler : IRequestHandler<ArchiveBoardCommand>
             board.WorkspaceId,
             cancellationToken);
 
-        if (membership == null || 
+        if (membership == null ||
             membership.UserRole == WorkspaceRole.Observer)
         {
             throw new ForbiddenAccessException(
-                "You do not have permission to archive boards in this workspace.");
+                "You do not have permission to restore boards in this workspace.");
         }
 
-        if (board.IsArchived || 
-            board.ArchiveStatus != BoardArchiveStatus.Active)
+        if (!board.IsArchived ||
+            board.ArchiveStatus != BoardArchiveStatus.Archived)
         {
             throw new InvalidOperationException(
-                "Board is already archived or archivation is in progress.");
+                "Board is not archived or its restoration is already in progress.");
         }
 
         try
@@ -58,7 +58,7 @@ public class ArchiveBoardCommandHandler : IRequestHandler<ArchiveBoardCommand>
             await uow.BoardRepository.UpdateArchiveStatusAsync(
                 request.BoardId,
                 true,
-                BoardArchiveStatus.Pending,
+                BoardArchiveStatus.RestorePending,
                 currentUserId,
                 cancellationToken);
 
