@@ -21,12 +21,14 @@ public class BlobArchivationService : IBlobArchivationService
 
     public async Task UploadArchiveAsync(
         string fileName, 
-        string jsonContent)
+        string jsonContent,
+        CancellationToken cancellationToken = default)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(
             _blobOptions.ContainerName);
 
-        await containerClient.CreateIfNotExistsAsync();
+        await containerClient.CreateIfNotExistsAsync(
+            cancellationToken: cancellationToken);
 
         var blobClient = containerClient.GetBlobClient(fileName);
 
@@ -34,6 +36,24 @@ public class BlobArchivationService : IBlobArchivationService
 
         await blobClient.UploadAsync(
             stream, 
-            overwrite: true);
+            overwrite: true,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task<string?> DownloadArchiveAsync(
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(
+            _blobOptions.ContainerName);
+        var blobClient = containerClient.GetBlobClient(fileName);
+
+        if (!await blobClient.ExistsAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var response = await blobClient.DownloadContentAsync(cancellationToken);
+        return response.Value.Content.ToString();
     }
 }
