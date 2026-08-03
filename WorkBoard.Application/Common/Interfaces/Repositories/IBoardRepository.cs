@@ -18,7 +18,7 @@ public interface IBoardRepository : IGenericRepository<Board, Guid>
         Guid updatedBy,
         CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<Guid>> GetBoardIdsByArchiveStatusAsync(
+    Task<IEnumerable<Guid>> GetBoardIdsByStatusAsync(
         BoardArchiveStatus archiveStatus,
         CancellationToken cancellationToken = default);
 
