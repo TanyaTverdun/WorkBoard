@@ -8,6 +8,7 @@ using WorkBoard.Application.Features.Boards.Commands.ArchiveBoard;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
 using WorkBoard.Application.Features.Boards.Commands.DeleteBoard;
 using WorkBoard.Application.Features.Boards.Commands.RemoveBoardMember;
+using WorkBoard.Application.Features.Boards.Commands.RestoreBoard;
 using WorkBoard.Application.Features.Boards.Commands.UpdateBoard;
 using WorkBoard.Application.Features.Boards.Commands.UpdateMemberRole;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardById;
@@ -521,6 +522,54 @@ public class BoardsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new ArchiveBoardCommand(boardId);
+
+        await _mediator.Send(command, cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Initiates the restoration process for an archived board
+    /// </summary>
+    /// <param name="boardId">
+    /// The unique identifier of the board to restore
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// An empty OK response if the restoration process has been queued
+    /// </returns>
+    /// <response code="200">
+    /// The board restoration process was successfully initiated
+    /// </response>
+    /// <response code="400">
+    /// The board is not archived or restoration is already in progress
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// The user does not have permission to restore this board
+    /// </response>
+    /// <response code="404">
+    /// The specified board was not found
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpPost("{boardId:guid}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RestoreBoard(
+        Guid boardId,
+        CancellationToken cancellationToken)
+    {
+        var command = new RestoreBoardCommand(boardId);
 
         await _mediator.Send(command, cancellationToken);
 
