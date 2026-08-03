@@ -71,6 +71,11 @@ RecurringJob.AddOrUpdate<BoardArchivationJob>(
     job => job.ProcessPendingBoardsAsync(),
     Cron.Minutely());
 
+RecurringJob.AddOrUpdate<BoardArchivationJob>(
+    HangfireJobIds.ProcessRestorePendingBoards,
+    job => job.ProcessRestorePendingBoardsAsync(),
+    Cron.Minutely());
+
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
 
