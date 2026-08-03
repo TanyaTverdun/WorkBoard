@@ -26,7 +26,8 @@ public class BoardArchivationJob
     public async Task ProcessPendingBoardsAsync()
     {
         var pendingBoardIds = await _boardRepository
-            .GetBoardIdsByArchiveStatusAsync(BoardArchiveStatus.Pending);
+            .GetBoardIdsByStatusAsync(
+                BoardArchiveStatus.Pending);
 
         if (!pendingBoardIds.Any())
         {
@@ -38,33 +39,56 @@ public class BoardArchivationJob
 
         foreach (var boardId in pendingBoardIds)
         {
-            using var uow = _unitOfWorkFactory.Create();
-            try
-            {
-                await uow.BoardRepository.SetArchiveStatusAsync(
-                    boardId, 
-                    BoardArchiveStatus.Queued);
+            await ProcessBoardStatusAsync(boardId, sender);
+        }
+    }
 
-                uow.Commit();
+    public async Task ProcessRestorePendingBoardsAsync()
+    {
+        var restorePendingBoardIds = await _boardRepository
+            .GetBoardIdsByStatusAsync(
+                BoardArchiveStatus.RestorePending);
 
-                var messageContent = JsonSerializer.Serialize(
-                    new 
-                    { 
-                        BoardId = boardId 
-                    });
-                var message = new ServiceBusMessage(messageContent);
-                await sender.SendMessageAsync(message);
-            }
-            catch (Exception ex)
-            {
-                uow.Rollback();
-                using var failUow = _unitOfWorkFactory.Create();
-                await failUow.BoardRepository.SetArchiveStatusAsync(
-                    boardId, 
-                    BoardArchiveStatus.Failed);
+        if (!restorePendingBoardIds.Any())
+        {
+            return;
+        }
 
-                failUow.Commit();
-            }
+        await using var sender = _serviceBusClient.CreateSender(
+            ServiceBusQueueNames.RestoreQueue);
+
+        foreach (var boardId in restorePendingBoardIds)
+        {
+            await ProcessBoardStatusAsync(boardId, sender);
+        }
+    }
+
+    private async Task ProcessBoardStatusAsync(
+        Guid boardId, 
+        ServiceBusSender sender)
+    {
+        using var uow = _unitOfWorkFactory.Create();
+        try
+        {
+            await uow.BoardRepository.SetArchiveStatusAsync(
+                boardId,
+                BoardArchiveStatus.Queued);
+
+            var messageContent = JsonSerializer.Serialize(
+                new 
+                { 
+                    BoardId = boardId 
+                });
+
+            var message = new ServiceBusMessage(messageContent);
+
+            await sender.SendMessageAsync(message);
+
+            uow.Commit();
+        }
+        catch (Exception)
+        {
+            uow.Rollback();
         }
     }
 }
