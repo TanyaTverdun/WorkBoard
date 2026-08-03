@@ -6,6 +6,9 @@
         "Queues": [
           {
             "Name": "archivation-queue"
+          },
+          {
+            "Name": "restore-queue"
           }
         ]
       }
