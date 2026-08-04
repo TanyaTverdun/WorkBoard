@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using System.Data;
 using WorkBoard.Application.Common.Dtos.Board;
+using WorkBoard.Application.Common.Dtos.Boards;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -138,5 +139,41 @@ public class BoardRepository
             cancellationToken: cancellationToken);
 
         return await _connection.QueryAsync<Guid>(command);
+    }
+
+    public async Task<IReadOnlyList<BoardArchivationDto>> GetBoardsForArchivationAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                b.BoardId AS Id,
+                b.Name,
+                w.Name AS WorkspaceName,
+                b.ArchiveStatus
+            FROM 
+                Boards b
+            JOIN 
+                Workspaces w ON b.WorkspaceId = w.WorkspaceId
+            JOIN 
+                WorkspaceMembers wm ON b.WorkspaceId = wm.WorkspaceId
+            WHERE 
+                wm.UserId = @UserId 
+                AND wm.UserRole IN (0, 1)
+            ORDER BY 
+                b.CreatedAt DESC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                UserId = userId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var boards = await _connection.QueryAsync<BoardArchivationDto>(command);
+
+        return boards.ToList().AsReadOnly();
     }
 }

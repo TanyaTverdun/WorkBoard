@@ -1,4 +1,5 @@
 ﻿using WorkBoard.Application.Common.Dtos.Board;
+using WorkBoard.Application.Common.Dtos.Boards;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
@@ -25,5 +26,9 @@ public interface IBoardRepository : IGenericRepository<Board, Guid>
     Task SetArchiveStatusAsync(
         Guid boardId,
         BoardArchiveStatus archiveStatus,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BoardArchivationDto>> GetBoardsForArchivationAsync(
+        Guid userId,
         CancellationToken cancellationToken = default);
 }
