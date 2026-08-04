@@ -3,6 +3,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Refit;
 using WorkBoard.Archivation.Services.Abstractions.Interfaces;
 using WorkBoard.Archivation.Services.Options;
 using WorkBoard.Archivation.Services.Services;
@@ -47,6 +48,22 @@ public static class DependencyInjection
         });
         services.AddScoped<IBlobArchivationService, BlobArchivationService>();
         services.AddScoped<IArchivationTrackerService, CosmosDbTrackerService>();
+
+        services.Configure<BackendApiOptions>(
+             configuration.GetSection(BackendApiOptions.SectionName));
+
+        services.AddRefitClient<IInternalBackendApi>()
+            .ConfigureHttpClient((sp, c) =>
+            {
+                var options = sp.GetRequiredService<IOptions<BackendApiOptions>>().Value;
+
+                if (string.IsNullOrWhiteSpace(options.Url))
+                {
+                    throw new InvalidOperationException("Backend API URL is not configured.");
+                }
+
+                c.BaseAddress = new Uri(options.Url);
+            });
 
         return services;
     }
