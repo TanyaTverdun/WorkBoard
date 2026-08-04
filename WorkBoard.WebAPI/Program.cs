@@ -79,5 +79,6 @@ RecurringJob.AddOrUpdate<BoardArchivationJob>(
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<ArchivationHub>("/hubs/archivation");
+app.MapHub<AppHub>("/hubs/app");
 
 app.Run();

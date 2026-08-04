@@ -52,7 +52,7 @@ public static class DependencyInjection
         services.Configure<BackendApiOptions>(
              configuration.GetSection(BackendApiOptions.SectionName));
 
-        services.AddRefitClient<IInternalBackendApi>()
+        services.AddRefitClient<IBackendApi>()
             .ConfigureHttpClient((sp, c) =>
             {
                 var options = sp.GetRequiredService<IOptions<BackendApiOptions>>().Value;
