@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddHangfireServer();
 
         services.AddTransient<IBoardNotificationService, BoardNotificationService>();
+        services.AddTransient<IArchivationNotificationService, ArchivationNotificationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
 
         return services;
