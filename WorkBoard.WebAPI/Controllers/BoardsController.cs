@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkBoard.Application.Common.Dtos.Board;
 using WorkBoard.Application.Common.Dtos.BoardMembers;
+using WorkBoard.Application.Common.Dtos.Boards;
 using WorkBoard.Application.Features.Boards.Commands.AddBoardMember;
 using WorkBoard.Application.Features.Boards.Commands.ArchiveBoard;
 using WorkBoard.Application.Features.Boards.Commands.CreateBoard;
@@ -14,6 +15,7 @@ using WorkBoard.Application.Features.Boards.Commands.UpdateMemberRole;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardById;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardMembers;
 using WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
+using WorkBoard.Application.Features.Boards.Queries.GetBoardsForArchivation;
 
 namespace WorkBoard.WebAPI.Controllers;
 
@@ -510,7 +512,7 @@ public class BoardsController : ControllerBase
     /// <response code="500">
     /// An internal server error occurred
     /// </response>
-    [HttpPost("{boardId:guid}/archive")]
+    [HttpPost("/api/boards/{boardId:guid}/archive")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -558,7 +560,7 @@ public class BoardsController : ControllerBase
     /// <response code="500">
     /// An internal server error occurred
     /// </response>
-    [HttpPost("{boardId:guid}/restore")]
+    [HttpPost("/api/boards/{boardId:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -574,5 +576,46 @@ public class BoardsController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return Ok();
+    }
+
+
+    /// <summary>
+    /// Retrieves a list of all boards (active and archived) 
+    /// for archivation management
+    /// </summary>
+    /// <param name="workspaceId">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// A list of boards with their current archivation status
+    /// </returns>
+    /// <response code="200">
+    /// The list of boards was successfully retrieved
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated within the system
+    /// </response>
+    /// <response code="403">
+    /// The user is an observer and cannot manage archivation
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpGet("/api/boards/archivation")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<BoardArchivationDto>>> GetBoardsForArchivation(
+        CancellationToken cancellationToken)
+    {
+        var query = new GetBoardsForArchivationQuery();
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        return Ok(result);
     }
 }      
