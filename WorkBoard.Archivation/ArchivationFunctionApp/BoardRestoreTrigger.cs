@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Refit;
 using System.Text.Json;
 using WorkBoard.Archivation.DataAccess.Abstractions.Interfaces;
 using WorkBoard.Archivation.Domain.Constants;
@@ -15,17 +16,20 @@ public class BoardRestoreTrigger
     private readonly IBoardArchiveRepository _repository;
     private readonly IBlobArchivationService _blobService;
     private readonly IArchivationTrackerService _tracker;
+    private readonly IBackendApi _backendApi;
 
     public BoardRestoreTrigger(
         ILogger<BoardRestoreTrigger> logger,
         IBoardArchiveRepository repository,
         IBlobArchivationService blobService,
-        IArchivationTrackerService tracker)
+        IArchivationTrackerService tracker,
+        IBackendApi backendApi)
     {
         _logger = logger;
         _repository = repository;
         _blobService = blobService;
         _tracker = tracker;
+        _backendApi = backendApi;
     }
 
     [Function(nameof(BoardRestoreTrigger))]
@@ -145,6 +149,34 @@ public class BoardRestoreTrigger
             _logger.LogInformation(
                 "Successfully restored board {boardId}", 
                 boardId);
+
+            try
+            {
+                await _backendApi.NotifyRestoreCompletedAsync(
+                    boardId, 
+                    cancellationToken);
+
+                _logger.LogInformation(
+                    "Successfully notified backend via Webhook " +
+                    "for restored board {boardId}",
+                    boardId);
+            }
+            catch (ApiException apiEx)
+            {
+                _logger.LogWarning(
+                    apiEx,
+                    "Backend returned an error for restore webhook. " +
+                    "Status: {status}",
+                    apiEx.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to connect to backend for restore webhook " +
+                    "for board {boardId}",
+                    boardId);
+            }
 
             await messageActions.CompleteMessageAsync(
                 message, 

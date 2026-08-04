@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Refit" Version="14.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WorkBoard.Archivation.Domain\WorkBoard.Archivation.Domain.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Refit;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using WorkBoard.Archivation.DataAccess.Abstractions.Interfaces;
@@ -17,17 +18,20 @@ public class BoardArchivationTrigger
     private readonly IBoardArchiveRepository _repository;
     private readonly IBlobArchivationService _blobService;
     private readonly IArchivationTrackerService _tracker;
+    private readonly IBackendApi _backendApi;
 
     public BoardArchivationTrigger(
         ILogger<BoardArchivationTrigger> logger,
         IBoardArchiveRepository repository,
         IBlobArchivationService blobService,
-        IArchivationTrackerService tracker)
+        IArchivationTrackerService tracker,
+        IBackendApi backendApi)
     {
         _logger = logger;
         _repository = repository;
         _blobService = blobService;
         _tracker = tracker;
+        _backendApi = backendApi;
     }
 
     [Function(nameof(BoardArchivationTrigger))]
@@ -142,6 +146,31 @@ public class BoardArchivationTrigger
                 boardId, 
                 "Completed", 
                 "Database status updated to Archived.");
+
+            try
+            {
+                await _backendApi.NotifyArchivationCompletedAsync(
+                    boardId,
+                    cancellationToken);
+
+                _logger.LogInformation(
+                    "Successfully notified backend via Webhook for board {boardId}",
+                    boardId);
+            }
+            catch (ApiException apiEx)
+            {
+                _logger.LogWarning(
+                    apiEx,
+                    "Backend returned an error for webhook. Status: {status}",
+                    apiEx.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to connect to backend for webhook for board {boardId}",
+                    boardId);
+            }
 
             await messageActions.CompleteMessageAsync(
                 message,
