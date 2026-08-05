@@ -1,14 +1,16 @@
 ﻿using Dapper;
 using System.Data;
 using WorkBoard.Application.Common.Dtos.Board;
+using WorkBoard.Application.Common.Dtos.Boards;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
-public class BoardRepository :
-GenericRepository<Board, Guid>, IBoardRepository
+public class BoardRepository 
+    : GenericRepository<Board, Guid>, IBoardRepository
 {
     public BoardRepository(IDbConnectionFactory connectionFactory)
         : base(connectionFactory)
@@ -56,6 +58,121 @@ GenericRepository<Board, Guid>, IBoardRepository
             cancellationToken: cancellationToken);
 
         var boards = await _connection.QueryAsync<BoardDto>(command);
+
+        return boards.ToList().AsReadOnly();
+    }
+
+    public async Task UpdateArchiveStatusAsync(
+        Guid boardId,
+        bool isArchived,
+        BoardArchiveStatus archiveStatus,
+        Guid updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE Boards 
+            SET 
+                IsArchived = @IsArchived,
+                ArchiveStatus = @ArchiveStatus,
+                UpdatedAt = @UpdatedAt,
+                UpdatedBy = @UpdatedBy
+            WHERE 
+                BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                IsArchived = isArchived,
+                ArchiveStatus = (int)archiveStatus,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = updatedBy,
+                BoardId = boardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
+
+    public async Task SetArchiveStatusAsync(
+        Guid boardId,
+        BoardArchiveStatus archiveStatus,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE Boards 
+            SET 
+                ArchiveStatus = @ArchiveStatus
+            WHERE 
+                BoardId = @BoardId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                ArchiveStatus = (int)archiveStatus,
+                BoardId = boardId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<IEnumerable<Guid>> GetBoardIdsByStatusAsync(
+        BoardArchiveStatus archiveStatus,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT BoardId 
+            FROM Boards 
+            WHERE ArchiveStatus = @ArchiveStatus;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                ArchiveStatus = (int)archiveStatus 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
+    }
+
+    public async Task<IReadOnlyList<BoardArchivationDto>> GetBoardsForArchivationAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                b.BoardId AS Id,
+                b.Name,
+                w.Name AS WorkspaceName,
+                b.ArchiveStatus
+            FROM 
+                Boards b
+            JOIN 
+                Workspaces w ON b.WorkspaceId = w.WorkspaceId
+            JOIN 
+                WorkspaceMembers wm ON b.WorkspaceId = wm.WorkspaceId
+            WHERE 
+                wm.UserId = @UserId 
+                AND wm.UserRole IN (0, 1)
+            ORDER BY 
+                b.CreatedAt DESC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                UserId = userId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var boards = await _connection.QueryAsync<BoardArchivationDto>(command);
 
         return boards.ToList().AsReadOnly();
     }

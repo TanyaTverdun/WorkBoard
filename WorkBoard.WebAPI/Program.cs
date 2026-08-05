@@ -1,8 +1,11 @@
+using Hangfire;
 using Microsoft.Identity.Web;
 using WorkBoard.Application;
 using WorkBoard.Database;
 using WorkBoard.Database.Options;
 using WorkBoard.Infrastructure;
+using WorkBoard.Infrastructure.Constants;
+using WorkBoard.Infrastructure.Hangfire;
 using WorkBoard.Infrastructure.SignalR.Hubs;
 using WorkBoard.Persistence;
 using WorkBoard.WebAPI;
@@ -61,7 +64,21 @@ app.UseCors(WorkBoard.WebAPI.DependencyInjection.BlazorWasmPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseHangfireDashboard("/hangfire");
+
+RecurringJob.AddOrUpdate<BoardArchivationJob>(
+    HangfireJobIds.ProcessPendingArchivationBoards,
+    job => job.ProcessPendingBoardsAsync(),
+    Cron.Minutely());
+
+RecurringJob.AddOrUpdate<BoardArchivationJob>(
+    HangfireJobIds.ProcessRestorePendingBoards,
+    job => job.ProcessRestorePendingBoardsAsync(),
+    Cron.Minutely());
+
 app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
+app.MapHub<ArchivationHub>("/hubs/archivation");
+app.MapHub<AppHub>("/hubs/app");
 
 app.Run();

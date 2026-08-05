@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Attachments;
+using WorkBoard.Application.Common.Dtos.Boards;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Common.Dtos.Comments;
@@ -411,6 +412,17 @@ public class BoardNotificationService : IBoardNotificationService
         await _hubContext.Clients.Group(boardId.ToString())
             .SendAsync(
                 BoardHubEvents.UserAvatarUpdated,
+                data,
+                cancellationToken);
+    }
+
+    public async Task NotifyArchivationStatusChangedAsync(
+        BoardArchiveStatusUpdatedDto data,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(data.BoardId.ToString())
+            .SendAsync(
+                BoardHubEvents.BoardArchiveStatusUpdated,
                 data,
                 cancellationToken);
     }

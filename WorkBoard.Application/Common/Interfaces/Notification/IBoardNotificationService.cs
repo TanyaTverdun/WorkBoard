@@ -1,5 +1,6 @@
 ﻿using WorkBoard.Application.Common.Dtos.ActivityLogs;
 using WorkBoard.Application.Common.Dtos.Attachments;
+using WorkBoard.Application.Common.Dtos.Boards;
 using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Dtos.Checklists;
 using WorkBoard.Application.Common.Dtos.Comments;
@@ -170,5 +171,9 @@ public interface IBoardNotificationService
     Task SendUserAvatarUpdatedAsync(
         Guid boardId,
         UserAvatarUpdatedDto data,
+        CancellationToken cancellationToken = default);
+
+    Task NotifyArchivationStatusChangedAsync(
+        BoardArchiveStatusUpdatedDto boardArchiveStatusUpdatedDto, 
         CancellationToken cancellationToken = default);
 }

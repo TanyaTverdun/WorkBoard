@@ -7,12 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
-    <ProjectReference Include="..\WorkBoard.Database\WorkBoard.Database.csproj" />
+    <Compile Remove="Context\**" />
+    <EmbeddedResource Remove="Context\**" />
+    <None Remove="Context\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Context\" />
+    <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
+    <ProjectReference Include="..\WorkBoard.Database\WorkBoard.Database.csproj" />
   </ItemGroup>
 
   <ItemGroup>

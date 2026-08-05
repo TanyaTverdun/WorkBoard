@@ -32,10 +32,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WorkBoard.Application\WorkBoard.Application.csproj" />
+    <ProjectReference Include="..\WorkBoard.Database\WorkBoard.Database.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.2" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.29.1" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.24" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.24" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.33.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.0" />
   </ItemGroup>

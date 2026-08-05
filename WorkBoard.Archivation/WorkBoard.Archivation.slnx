@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="ArchivationFunctionApp/ArchivationFunctionApp.csproj" />
+  <Project Path="WorkBoard.Archivation.DataAccess.Abstractions/WorkBoard.Archivation.DataAccess.Abstractions.csproj" Id="152032f3-47dc-487c-8bb2-30ac785c8750" />
+  <Project Path="WorkBoard.Archivation.DataAccess/WorkBoard.Archivation.DataAccess.csproj" Id="60e677d7-d9fd-4714-8ed1-1e4e36d8e991" />
+  <Project Path="WorkBoard.Archivation.Domain/WorkBoard.Archivation.Domain.csproj" Id="ac91bc79-7b25-4bb2-8259-b9075e671315" />
+  <Project Path="WorkBoard.Archivation.Services.Abstractions/WorkBoard.Archivation.Services.Abstractions.csproj" Id="cda52dd0-70b1-4939-9ddf-d02725149427" />
+  <Project Path="WorkBoard.Archivation.Services/WorkBoard.Archivation.Services.csproj" Id="bd2366bf-4118-4e00-86ba-112541556553" />
+</Solution>

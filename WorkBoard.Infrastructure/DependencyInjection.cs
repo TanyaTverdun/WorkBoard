@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.Azure;
+﻿using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Database.Options;
 using WorkBoard.Infrastructure.BlobStorage;
 using WorkBoard.Infrastructure.Options;
 using WorkBoard.Infrastructure.SignalR.Services;
@@ -15,6 +18,12 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var databaseOptions = configuration
+            .GetSection(DatabaseOptions.SectionName)
+            .Get<DatabaseOptions>()
+                ?? throw new InvalidOperationException(
+                    "Database section is missing in appsettings.json");
+
         services.Configure<AzureOptions>(
             configuration.GetSection(AzureOptions.SectionName));
 
@@ -39,12 +48,39 @@ public static class DependencyInjection
                 "Azure Blob Storage Connection String is missing in appsettings.json");
         }
 
+        if (string.IsNullOrEmpty(azureOptions.ServiceBus?.ConnectionString))
+        {
+            throw new InvalidOperationException(
+                "Azure Service Bus Connection String is missing in appsettings.json");
+        }
+
         services.AddAzureClients(clientBuilder =>
         {
             clientBuilder.AddBlobServiceClient(azureOptions.BlobStorage.ConnectionString);
+            clientBuilder.AddServiceBusClient(azureOptions.ServiceBus.ConnectionString);
         });
 
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(
+                databaseOptions.ConnectionString,
+                new SqlServerStorageOptions
+                {
+                    SchemaName = ServiceBusOptions.HangfireSchema,
+                    PrepareSchemaIfNecessary = true,
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true
+                }));
+
+        services.AddHangfireServer();
+
         services.AddTransient<IBoardNotificationService, BoardNotificationService>();
+        services.AddTransient<IArchivationNotificationService, ArchivationNotificationService>();
+        services.AddTransient<IAppNotificationService, AppNotificationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
 
         return services;
