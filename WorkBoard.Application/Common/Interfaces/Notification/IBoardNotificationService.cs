@@ -176,4 +176,21 @@ public interface IBoardNotificationService
     Task NotifyArchivationStatusChangedAsync(
         BoardArchiveStatusUpdatedDto boardArchiveStatusUpdatedDto, 
         CancellationToken cancellationToken = default);
+
+    Task SendMemberRoleUpdatedInMultipleBoardsAsync(
+        IEnumerable<Guid> boardIds,
+        Guid userId,
+        BoardRole newRole,
+        CancellationToken cancellationToken = default);
+
+    Task SendMemberAddedToMultipleBoardsAsync(
+        IEnumerable<Guid> boardIds,
+        Guid userId,
+        BoardRole role,
+        CancellationToken cancellationToken = default);
+
+    Task SendMemberRemovedFromMultipleBoardsAsync(
+        IEnumerable<Guid> boardIds,
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }
