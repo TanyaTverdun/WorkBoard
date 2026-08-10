@@ -7,19 +7,19 @@ using WorkBoard.Application.Common.Interfaces.Repositories;
 namespace WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
 public class GetBoardsByWorkspaceQueryHandler
-: IRequestHandler<GetBoardsByWorkspaceQuery, IReadOnlyList<BoardDto>>
+    : IRequestHandler<GetBoardsByWorkspaceQuery, IReadOnlyList<BoardDto>>
 {
     private readonly IBoardRepository _boardRepository;
-    private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
+    private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
 
     public GetBoardsByWorkspaceQueryHandler(
         IBoardRepository boardRepository,
-        IWorkspaceMemberRepository workspaceMemberRepository,
+        IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext)
     {
         _boardRepository = boardRepository;
-        _workspaceMemberRepository = workspaceMemberRepository;
+        _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
     }
 
@@ -27,28 +27,25 @@ public class GetBoardsByWorkspaceQueryHandler
         GetBoardsByWorkspaceQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = _userContext.UserId;
-
-        if (userId == null)
-        {
-            throw new UnauthorizedAccessException(
+        var currentUserId = _userContext.UserId
+            ?? throw new UnauthorizedAccessException(
                 "User is not authenticated.");
-        }
 
-        var isWorkspaceMember = await _workspaceMemberRepository.IsMemberAsync(
+        using var uow = _unitOfWorkFactory.Create();
+
+        var isMember = await uow.WorkspaceMemberRepository.IsMemberAsync(
             request.WorkspaceId,
-            userId.Value,
+            currentUserId,
             cancellationToken);
 
-        if (!isWorkspaceMember)
+        if (!isMember)
         {
             throw new ForbiddenAccessException(
-                "You do not have access to this workspace.");
+                "You don't have access to this workspace.");
         }
 
         return await _boardRepository.GetByWorkspaceIdAsync(
             request.WorkspaceId,
-            userId.Value,
             cancellationToken);
     }
 }
