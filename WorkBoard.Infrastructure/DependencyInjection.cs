@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
+using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Database.Options;
@@ -124,6 +125,12 @@ public static class DependencyInjection
             .WithAzureOpenAITextGeneration(chatConfig)
             .WithAzureOpenAITextEmbeddingGeneration(embeddingConfig)
             .WithAzureAISearchMemoryDb(aiSearchOptions.Endpoint, aiSearchOptions.ApiKey)
+            .WithAzureBlobsDocumentStorage(new AzureBlobsConfig
+            {
+                Auth = AzureBlobsConfig.AuthTypes.ConnectionString,
+                ConnectionString = azureOptions.BlobStorage.ConnectionString,
+                Container = BlobContainers.KernelMemoryDocs
+            })
             .Build<MemoryServerless>();
 
         services.AddSingleton<IKernelMemory>(memory);
