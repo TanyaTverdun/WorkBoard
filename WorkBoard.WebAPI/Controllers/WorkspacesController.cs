@@ -359,7 +359,7 @@ public class WorkspacesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IReadOnlyList<UserWorkspaceDto>>> GetWorkspacesForDropdown(
+    public async Task<ActionResult<IReadOnlyList<UserWorkspaceDto>>> GetUserWorkspaces(
         CancellationToken cancellationToken)
     {
         var query = new GetWorkspacesForRoleManagementQuery();
