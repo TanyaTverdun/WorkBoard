@@ -61,11 +61,11 @@ public class BoardsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IReadOnlyList<BoardDto>>> GetBoards(
+    public async Task<ActionResult<IReadOnlyList<BoardDto>>> GetBoardsForUser(
         Guid workspaceId,
         CancellationToken cancellationToken)
     {
-        var query = new GetBoardsByWorkspaceQuery(workspaceId);
+        var query = new GetBoardsForUserByWorkspaceQuery(workspaceId);
 
         var result = await _mediator.Send(query, cancellationToken);
 
@@ -617,5 +617,45 @@ public class BoardsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Retrieves all boards within a specific workspace
+    /// </summary>
+    /// <param name="workspaceId">
+    /// The unique identifier of the workspace to get boards from
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token to cancel the operation
+    /// </param>
+    /// <returns>
+    /// A list of boards belonging to the specified workspace
+    /// </returns>
+    /// <response code="200">
+    /// The workspace boards were successfully retrieved
+    /// </response>
+    /// <response code="401">
+    /// The user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// The user does not have permission to view boards in this workspace
+    /// </response>
+    /// <response code="500">
+    /// An internal server error occurred
+    /// </response>
+    [HttpGet("/api/workspaces/{workspaceId:guid}/boards/all")]
+    [ProducesResponseType(typeof(IReadOnlyList<BoardDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetBoardsByWorkspace(
+        Guid workspaceId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetBoardsByWorkspaceQuery(workspaceId);
+
+        var boards = await _mediator.Send(query, cancellationToken);
+
+        return Ok(boards);
     }
 }      
