@@ -7,7 +7,7 @@ namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
 public interface IBoardRepository : IGenericRepository<Board, Guid>
 {
-    Task<IReadOnlyList<BoardDto>> GetByWorkspaceIdAsync(
+    Task<IReadOnlyList<BoardDto>> GetForUserByWorkspaceIdAsync(
         Guid workspaceId,
         Guid userId,
         CancellationToken cancellationToken = default);
@@ -30,5 +30,9 @@ public interface IBoardRepository : IGenericRepository<Board, Guid>
 
     Task<IReadOnlyList<BoardArchivationDto>> GetBoardsForArchivationAsync(
         Guid userId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BoardDto>> GetByWorkspaceIdAsync(
+        Guid workspaceId,
         CancellationToken cancellationToken = default);
 }

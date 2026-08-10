@@ -24,7 +24,7 @@ public class BoardRepository
     {
     }
 
-    public async Task<IReadOnlyList<BoardDto>> GetByWorkspaceIdAsync(
+    public async Task<IReadOnlyList<BoardDto>> GetForUserByWorkspaceIdAsync(
         Guid workspaceId,
         Guid userId,
         CancellationToken cancellationToken = default)
@@ -173,6 +173,38 @@ public class BoardRepository
             cancellationToken: cancellationToken);
 
         var boards = await _connection.QueryAsync<BoardArchivationDto>(command);
+
+        return boards.ToList().AsReadOnly();
+    }
+
+    public async Task<IReadOnlyList<BoardDto>> GetByWorkspaceIdAsync(
+        Guid workspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                BoardId AS Id,
+                WorkspaceId,
+                Name,
+                IsArchived
+            FROM 
+                Boards
+            WHERE 
+                WorkspaceId = @WorkspaceId
+                AND IsArchived = 0
+            ORDER BY 
+                CreatedAt DESC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                WorkspaceId = workspaceId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var boards = await _connection.QueryAsync<BoardDto>(command);
 
         return boards.ToList().AsReadOnly();
     }
