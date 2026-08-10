@@ -262,6 +262,35 @@ Each board in the list displays its Name, Workspace Name, Status Badge, and an a
 - **To Restore a Board:** If a board is "Archived", a **"Restore"** button will be visible. Clicking this will initiate the restoration process, moving the board back to your active workspace.
 - **In Progress States:** If a board is currently "Archiving" or "Restore Pending", no action buttons will be available. Instead, you will see a status text such as _"In progress..."_ or _"Processing..."_ indicating that the system is working on your request.
 
+# User Guide: Roles & Member Management
+
+## 1. Overview of the Workspace roles
+
+Workspace access and permissions are controlled through a strict role-based system. There are exactly three roles available:
+
+- **Observer:** Has view-only access. Observers can view all boards within the workspace but cannot make any modifications.
+- **Member:** Automatically becomes a member of all boards within the workspace. Members have the authority to add new members or remove existing members from the workspace.
+- **Owner:** Has top-level administrative control over the workspace, including the exclusive ability to rename or delete the workspace.
+
+## 2. Inviting a New Member
+
+Users with the appropriate permissions (Owner or Member) can invite new people to join the workspace.
+
+1. Click the **"Invite Member"** button located at the top right of the Workspace Members list.
+2. In the "ADD MEMBER BY EMAIL" pop-up window, enter the user's email address (e.g., name@company.com).
+3. Click the role dropdown menu and select the appropriate role (Member or Observer) for the new user.
+4. Click the "Add" button to grant access to the workspace.
+
+## 3. Changing a User's Role
+
+Users with member management permissions can adjust the access levels of existing workspace members.
+
+1. Locate the user you wish to modify in the "Workspace Members" list.
+2. Click on the user's current role badge (dropdown menu) located on the right side of their profile row.
+3. Select the new role from the list.
+    - _Constraint:_ You cannot change your own role.
+    - _Constraint:_ The role of an **Owner** is strictly locked and cannot be changed by anyone.
+
 # User Guide: Profile Settings
 
 ## 1. Overview of the Profile Page
@@ -291,3 +320,47 @@ Whenever you modify your profile photo or avatar color, an action bar will appea
 
 - **Save Changes:** Click **"Save changes"** to permanently apply your new profile photo or color settings.
 - **Cancel Changes:** Click **"Cancel"** to revert all modifications back to their last saved state.
+
+# User Guide: Subscriptions & Billing
+
+## 1. Overview of Subscriptions
+
+Any user can manage their subscription plan and view billing details by navigating to the **"Subscriptions"** tab in the left sidebar. Your subscription is tied directly to your user account. When you upgrade to a paid plan, all workspaces that you own are automatically upgraded to include Pro features.
+
+## 2. Available Subscription Plans
+
+The platform offers two subscription tiers:
+
+**Free Plan**
+The default plan for new accounts, designed for personal projects and getting started.
+
+- _Constraint:_ Limited to 1 Workspace.
+- _Constraint:_ Limited to a maximum of 5 Boards.
+- _Constraint:_ Limited to a maximum of 10 Sections in Board.
+
+**Pro Plan**
+An upgraded tier designed for unlimited scale and advanced collaboration tools.
+
+- **Unlimited Scale:** Create unlimited Workspaces, Boards, and Sections.
+- **Board Archivation:** Access to the archivation feature to archive and restore boards as needed.
+- **AI Chat:** Full access to the integrated AI assistant.
+- **Live Meet:** Built-in video conferencing capabilities.
+
+## 3. Upgrading Your Plan
+
+To upgrade your account from the Free plan to the Pro plan:
+
+1. Navigate to the **"Subscriptions"** section in the sidebar.
+2. Locate the Pro plan card and click the **"Upgrade"** button.
+3. You will be securely redirected to complete your payment. Once successful, your limits are removed, and all your workspaces will immediately gain access to Pro features.
+
+## 4. Downgrading to the Free Plan
+
+You can cancel your Pro subscription and downgrade back to the Free plan at any time.
+
+1. Navigate to the **"Subscriptions"** section in the sidebar.
+2. Locate the Free plan card and click the **"Downgrade"** button.
+3. A confirmation window will appear on the screen, asking you to verify your decision to change the plan.
+4. Confirm the action in the prompt to finalize the downgrade.
+
+- _Critical Warning:_ By downgrading to the Free plan, your account will immediately be restricted to the Free tier limits (1 Workspace, maximum of 5 Boards, maximum of 10 Sections). If your current workspaces or boards exceed these limits, **the excess data will be permanently deleted** upon confirmation. Please ensure you manually reorganize or export your necessary data before proceeding with the downgrade.
