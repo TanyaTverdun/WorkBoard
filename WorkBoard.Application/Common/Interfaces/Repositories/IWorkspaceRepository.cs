@@ -8,4 +8,8 @@ public interface IWorkspaceRepository : IGenericRepository<Workspace, Guid>
     Task<IReadOnlyList<UserWorkspaceDto>> GetByUserIdAsync(
         Guid userId, 
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<UserWorkspaceDto>> GetWorkspacesForRoleManagementAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

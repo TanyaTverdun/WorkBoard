@@ -3,6 +3,7 @@ using System.Data;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
@@ -21,7 +22,7 @@ public class WorkspaceMemberRepository :
     {
     }
 
-    public async Task AddMemberAsync(
+    public async Task<IEnumerable<Guid>> AddMemberAsync(
         WorkspaceMember member, 
         CancellationToken cancellationToken = default)
     {
@@ -33,7 +34,27 @@ public class WorkspaceMemberRepository :
             VALUES (
                 @UserId, 
                 @WorkspaceId, 
-                @UserRole);";
+                @UserRole);
+
+            INSERT INTO BoardMembers(
+                BoardId, 
+                UserId, 
+                UserRole)
+            SELECT
+                b.Id, 
+                @UserId, 
+                @UserRole
+            FROM
+                Boards b
+            WHERE
+                b.WorkspaceId = @WorkspaceId;
+
+            SELECT 
+                Id 
+            FROM 
+                Boards 
+            WHERE 
+                WorkspaceId = @WorkspaceId;";
 
         var command = new CommandDefinition(
             sql,
@@ -41,7 +62,7 @@ public class WorkspaceMemberRepository :
             transaction: _transaction,
             cancellationToken: cancellationToken);
 
-        await _connection.ExecuteAsync(command);
+        return await _connection.QueryAsync<Guid>(command);
     }
     
     public async Task<bool> IsMemberAsync(
@@ -99,5 +120,117 @@ public class WorkspaceMemberRepository :
             transaction: _transaction,
             cancellationToken: cancellationToken);
          return await _connection.QueryFirstOrDefaultAsync<WorkspaceMember>(command);
+    }
+
+    public async Task<IEnumerable<Guid>> UpdateRoleAsync(
+        Guid workspaceId,
+        Guid userId,
+        WorkspaceRole newRole,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                WorkspaceMembers 
+            SET 
+                UserRole = @NewRole
+            WHERE 
+                WorkspaceId = @WorkspaceId AND 
+                UserId = @UserId;
+
+            UPDATE bm
+            SET 
+                bm.UserRole = @NewRole
+            FROM 
+                BoardMembers bm
+            INNER JOIN 
+                Boards b ON bm.BoardId = b.Id
+            WHERE 
+                b.WorkspaceId = @WorkspaceId AND 
+                bm.UserId = @UserId;
+
+            INSERT INTO BoardMembers (
+                BoardId, 
+                UserId, 
+                UserRole
+            )
+            SELECT 
+                b.Id, 
+                @UserId, 
+                @NewRole
+            FROM 
+                Boards b
+            WHERE 
+                b.WorkspaceId = @WorkspaceId
+                AND NOT EXISTS (
+                    SELECT 1 
+                    FROM 
+                        BoardMembers bm 
+                    WHERE 
+                        bm.BoardId = b.Id AND 
+                        bm.UserId = @UserId
+                );
+
+            SELECT 
+                Id 
+            FROM 
+                Boards 
+            WHERE 
+                WorkspaceId = @WorkspaceId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                WorkspaceId = workspaceId,
+                UserId = userId,
+                NewRole = (byte)newRole
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
+    }
+
+    public async Task<IEnumerable<Guid>> RemoveMemberAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            DELETE 
+                bm
+            FROM 
+                BoardMembers bm
+            INNER JOIN 
+                Boards b 
+                ON bm.BoardId = b.Id
+            WHERE 
+                b.WorkspaceId = @WorkspaceId AND 
+                bm.UserId = @UserId;
+
+            DELETE FROM 
+                WorkspaceMembers
+            WHERE 
+                WorkspaceId = @WorkspaceId AND 
+                UserId = @UserId;
+
+            SELECT 
+                Id 
+            FROM 
+                Boards 
+            WHERE 
+                WorkspaceId = @WorkspaceId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                WorkspaceId = workspaceId,
+                UserId = userId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
     }
 }
