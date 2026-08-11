@@ -80,5 +80,6 @@ app.MapControllers();
 app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<ArchivationHub>("/hubs/archivation");
 app.MapHub<AppHub>("/hubs/app");
+app.MapHub<WorkspaceHub>("/hubs/workspace");
 
 app.Run();
