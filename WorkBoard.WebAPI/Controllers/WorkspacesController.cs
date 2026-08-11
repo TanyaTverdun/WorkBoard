@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Features.Workspace.Commands.AddWorkspaceMember;
 using WorkBoard.Application.Features.Workspace.Commands.CreateWorkspace;
@@ -9,7 +10,9 @@ using WorkBoard.Application.Features.Workspace.Commands.RemoveWorkspaceMember;
 using WorkBoard.Application.Features.Workspace.Commands.UpdateWorkspace;
 using WorkBoard.Application.Features.Workspace.Commands.UpdateWorkspaceMemberRole;
 using WorkBoard.Application.Features.Workspace.Queries.GetUserWorkspaces;
+using WorkBoard.Application.Features.Workspace.Queries.GetWorkspaceMembers;
 using WorkBoard.Application.Features.Workspace.Queries.GetWorkspacesForRoleManagement;
+using WorkBoard.Application.Features.Workspace.Queries.SearchAssignableUsers;
 
 namespace WorkBoard.WebAPI.Controllers;
 
@@ -366,5 +369,85 @@ public class WorkspacesController : ControllerBase
         var workspaces = await _mediator.Send(query, cancellationToken);
 
         return Ok(workspaces);
+    }
+
+    /// <summary>
+    /// Retrieves all members of a specific workspace
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A list of workspace members
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the list of workspace members
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user is not a member of this workspace
+    /// </response>
+    [HttpGet("{id:guid}/members")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<WorkspaceMemberDto>>> GetWorkspaceMembers(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetWorkspaceMembersQuery(id);
+        var members = await _mediator.Send(query, cancellationToken);
+
+        return Ok(members);
+    }
+
+    /// <summary>
+    /// Searches for users by email who are not yet members of the workspace
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="searchTerm">
+    /// The email prefix or search term to filter users
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A list of users matching the search term 
+    /// who can be added to the workspace
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the list of assignable users
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user is not a member of this workspace
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpGet("{id:guid}/assignable-users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<UserSearchDto>>> SearchAssignableUsers(
+        [FromRoute] Guid id,
+        [FromQuery] string searchTerm,
+        CancellationToken cancellationToken)
+    {
+        var query = new SearchWorkspaceAssignableUsersQuery(id, searchTerm);
+        var users = await _mediator.Send(query, cancellationToken);
+
+        return Ok(users);
     }
 }
