@@ -85,8 +85,8 @@ public class WorkspaceRepository :
                 UserId = userId,
                 AllowedRoles = new[]
                 {
-                    (byte)WorkspaceRole.Owner,
-                    (byte)WorkspaceRole.Member
+                    (int)WorkspaceRole.Owner,
+                    (int)WorkspaceRole.Member
                 }
             },
             transaction: _transaction,
