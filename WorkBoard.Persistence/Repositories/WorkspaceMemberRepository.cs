@@ -1,5 +1,7 @@
 using Dapper;
 using System.Data;
+using WorkBoard.Application.Common.Dtos.Users;
+using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
@@ -41,7 +43,7 @@ public class WorkspaceMemberRepository :
                 UserId, 
                 UserRole)
             SELECT
-                b.Id, 
+                b.BoardId, 
                 @UserId, 
                 @UserRole
             FROM
@@ -50,7 +52,7 @@ public class WorkspaceMemberRepository :
                 b.WorkspaceId = @WorkspaceId;
 
             SELECT 
-                Id 
+                BoardId 
             FROM 
                 Boards 
             WHERE 
@@ -143,7 +145,8 @@ public class WorkspaceMemberRepository :
             FROM 
                 BoardMembers bm
             INNER JOIN 
-                Boards b ON bm.BoardId = b.Id
+                Boards b 
+                ON bm.BoardId = b.BoardId
             WHERE 
                 b.WorkspaceId = @WorkspaceId AND 
                 bm.UserId = @UserId;
@@ -154,7 +157,7 @@ public class WorkspaceMemberRepository :
                 UserRole
             )
             SELECT 
-                b.Id, 
+                b.BoardId, 
                 @UserId, 
                 @NewRole
             FROM 
@@ -166,12 +169,12 @@ public class WorkspaceMemberRepository :
                     FROM 
                         BoardMembers bm 
                     WHERE 
-                        bm.BoardId = b.Id AND 
+                        bm.BoardId = b.BoardId AND 
                         bm.UserId = @UserId
                 );
 
             SELECT 
-                Id 
+                BoardId 
             FROM 
                 Boards 
             WHERE 
@@ -203,7 +206,7 @@ public class WorkspaceMemberRepository :
                 BoardMembers bm
             INNER JOIN 
                 Boards b 
-                ON bm.BoardId = b.Id
+                ON bm.BoardId = b.BoardId
             WHERE 
                 b.WorkspaceId = @WorkspaceId AND 
                 bm.UserId = @UserId;
@@ -215,7 +218,7 @@ public class WorkspaceMemberRepository :
                 UserId = @UserId;
 
             SELECT 
-                Id 
+                BoardId 
             FROM 
                 Boards 
             WHERE 
@@ -232,5 +235,83 @@ public class WorkspaceMemberRepository :
             cancellationToken: cancellationToken);
 
         return await _connection.QueryAsync<Guid>(command);
+    }
+
+    public async Task<IReadOnlyList<WorkspaceMemberDto>> GetMembersByWorkspaceIdAsync(
+        Guid workspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                u.UserId AS Id,
+                u.FullName AS Name,
+                u.Email,
+                wm.UserRole AS Role,
+                u.AvatarUrl,
+                u.AvatarColor
+            FROM 
+                WorkspaceMembers wm
+            INNER JOIN 
+                Users u ON wm.UserId = u.UserId
+            WHERE 
+                wm.WorkspaceId = @WorkspaceId
+            ORDER BY 
+                wm.UserRole ASC,
+                u.FullName ASC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                WorkspaceId = workspaceId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var members = await _connection.QueryAsync<WorkspaceMemberDto>(command);
+
+        return members.ToList().AsReadOnly();
+    }
+
+    public async Task<IReadOnlyList<UserSearchDto>> SearchWorkspaceAssignableUsersAsync(
+        Guid workspaceId,
+        string searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT TOP 10
+                UserId,
+                FullName,
+                Email,
+                AvatarUrl,
+                AvatarColor
+            FROM 
+                Users
+            WHERE 
+                Email LIKE @SearchTerm + '%'
+                AND UserId NOT IN (
+                    SELECT 
+                        UserId 
+                    FROM 
+                        WorkspaceMembers 
+                    WHERE 
+                        WorkspaceId = @WorkspaceId
+                )
+            ORDER BY 
+                Email;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                WorkspaceId = workspaceId,
+                SearchTerm = searchTerm
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var users = await _connection.QueryAsync<UserSearchDto>(command);
+
+        return users.ToList().AsReadOnly();
     }
 }
