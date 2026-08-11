@@ -129,11 +129,6 @@ public class AddChecklistItemCommandHandler
             logDto,
             cancellationToken);
 
-        await _notificationService.SendActivityLogAddedAsync(
-            section.BoardId,
-            logDto,
-            cancellationToken);
-
         var checklistItemDto = _mapper.Map<ChecklistItemDto>(checklistItem);
 
         var checklistItemAddedDto = new ChecklistItemAddedDto(
