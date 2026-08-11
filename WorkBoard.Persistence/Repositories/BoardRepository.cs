@@ -154,9 +154,11 @@ public class BoardRepository
             FROM 
                 Boards b
             JOIN 
-                Workspaces w ON b.WorkspaceId = w.WorkspaceId
+                Workspaces w 
+                ON b.WorkspaceId = w.WorkspaceId
             JOIN 
-                WorkspaceMembers wm ON b.WorkspaceId = wm.WorkspaceId
+                WorkspaceMembers wm 
+                ON b.WorkspaceId = wm.WorkspaceId
             WHERE 
                 wm.UserId = @UserId 
                 AND wm.UserRole IN (0, 1)
@@ -173,38 +175,6 @@ public class BoardRepository
             cancellationToken: cancellationToken);
 
         var boards = await _connection.QueryAsync<BoardArchivationDto>(command);
-
-        return boards.ToList().AsReadOnly();
-    }
-
-    public async Task<IReadOnlyList<BoardDto>> GetByWorkspaceIdAsync(
-        Guid workspaceId,
-        CancellationToken cancellationToken = default)
-    {
-        const string sql = @"
-            SELECT 
-                BoardId AS Id,
-                WorkspaceId,
-                Name,
-                IsArchived
-            FROM 
-                Boards
-            WHERE 
-                WorkspaceId = @WorkspaceId
-                AND IsArchived = 0
-            ORDER BY 
-                CreatedAt DESC;";
-
-        var command = new CommandDefinition(
-            sql,
-            new
-            {
-                WorkspaceId = workspaceId
-            },
-            transaction: _transaction,
-            cancellationToken: cancellationToken);
-
-        var boards = await _connection.QueryAsync<BoardDto>(command);
 
         return boards.ToList().AsReadOnly();
     }

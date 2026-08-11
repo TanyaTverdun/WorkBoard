@@ -1,3 +1,5 @@
+using WorkBoard.Application.Common.Dtos.Users;
+using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
@@ -29,5 +31,14 @@ public interface IWorkspaceMemberRepository :
     Task<IEnumerable<Guid>> RemoveMemberAsync(
         Guid workspaceId, 
         Guid userId, 
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<WorkspaceMemberDto>> GetMembersByWorkspaceIdAsync(
+        Guid workspaceId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<UserSearchDto>> SearchWorkspaceAssignableUsersAsync(
+        Guid workspaceId,
+        string searchTerm,
         CancellationToken cancellationToken = default);
 }
