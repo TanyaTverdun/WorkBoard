@@ -1,4 +1,5 @@
-﻿using WorkBoard.Domain.Enums;
+﻿using WorkBoard.Application.Common.Dtos.Workspaces;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Common.Interfaces.Notification;
 
@@ -12,8 +13,7 @@ public interface IWorkspaceNotificationService
 
     Task SendMemberAddedAsync(
         Guid workspaceId,
-        Guid userId,
-        WorkspaceRole role,
+        WorkspaceMemberAddedDto payload,
         CancellationToken cancellationToken = default);
 
     Task SendMemberRemovedAsync(

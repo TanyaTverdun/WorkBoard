@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Enums;
 using WorkBoard.Infrastructure.Constants;
@@ -34,18 +35,13 @@ public class WorkspaceNotificationService : IWorkspaceNotificationService
 
     public async Task SendMemberAddedAsync(
         Guid workspaceId,
-        Guid userId,
-        WorkspaceRole role,
+        WorkspaceMemberAddedDto payload,
         CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients.Group(workspaceId.ToString())
             .SendAsync(
                 WorkspaceHubEvents.MemberAdded,
-                new
-                {
-                    UserId = userId,
-                    Role = role
-                },
+                payload,
                 cancellationToken);
     }
 
