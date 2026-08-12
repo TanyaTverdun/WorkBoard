@@ -74,7 +74,6 @@ public class WorkspaceRepository :
                 ON w.WorkspaceId = wm.WorkspaceId
             WHERE 
                 wm.UserId = @UserId
-                AND wm.UserRole IN @AllowedRoles 
             ORDER BY 
                 w.Name ASC;";
 
@@ -82,12 +81,7 @@ public class WorkspaceRepository :
             sql,
             new
             {
-                UserId = userId,
-                AllowedRoles = new[]
-                {
-                    (int)WorkspaceRole.Owner,
-                    (int)WorkspaceRole.Member
-                }
+                UserId = userId
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
