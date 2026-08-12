@@ -9,6 +9,7 @@ public static class BoardHubEvents
     public const string SectionMoved = "SectionMoved";
     public const string MemberRoleUpdated = "MemberRoleUpdated";
     public const string MemberRemoved = "MemberRemoved";
+    public const string MemberAdded = "MemberAdded";
     public const string CardMoved = "CardMoved";
     public const string CardDeleted = "CardDeleted";
     public const string CardRenamed = "CardRenamed";

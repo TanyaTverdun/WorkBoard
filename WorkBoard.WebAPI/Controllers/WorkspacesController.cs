@@ -1,11 +1,18 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Dtos.Workspaces;
+using WorkBoard.Application.Features.Workspace.Commands.AddWorkspaceMember;
 using WorkBoard.Application.Features.Workspace.Commands.CreateWorkspace;
-using WorkBoard.Application.Features.Workspace.Commands.UpdateWorkspace;
 using WorkBoard.Application.Features.Workspace.Commands.DeleteWorkspace;
+using WorkBoard.Application.Features.Workspace.Commands.RemoveWorkspaceMember;
+using WorkBoard.Application.Features.Workspace.Commands.UpdateWorkspace;
+using WorkBoard.Application.Features.Workspace.Commands.UpdateWorkspaceMemberRole;
 using WorkBoard.Application.Features.Workspace.Queries.GetUserWorkspaces;
+using WorkBoard.Application.Features.Workspace.Queries.GetWorkspaceMembers;
+using WorkBoard.Application.Features.Workspace.Queries.GetWorkspacesForRoleManagement;
+using WorkBoard.Application.Features.Workspace.Queries.SearchAssignableUsers;
 
 namespace WorkBoard.WebAPI.Controllers;
 
@@ -181,5 +188,266 @@ public class WorkspacesController : ControllerBase
         await _mediator.Send(command, cancellationToken);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Updates the role of an existing workspace member
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="memberId">
+    /// The unique identifier of the user whose role is being updated
+    /// </param>
+    /// <param name="request">
+    /// The new role details
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="204">
+    /// No Content. Success, member role updated successfully
+    /// </response>
+    /// <response code="400">
+    /// Bad Request. If the input data is invalid
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user lacks permissions to change the role
+    /// </response>
+    /// <response code="404">
+    /// Not Found. If the workspace or member does not exist
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpPut("{id:guid}/members/{memberId:guid}/role")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateMemberRole(
+        [FromRoute] Guid id,
+        [FromRoute] Guid memberId,
+        [FromBody] UpdateWorkspaceMemberRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateWorkspaceMemberRoleCommand(
+            id,
+            memberId,
+            request.NewRole
+        );
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Adds a new user to the workspace
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="request">
+    /// The details of the user being added (UserId and Role)
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="204">
+    /// No Content. Success, member added successfully
+    /// </response>
+    /// <response code="400">
+    /// Bad Request. If the input data is invalid or user is already a member
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user lacks permissions to add members
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpPost("{id:guid}/members")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddMember(
+        [FromRoute] Guid id,
+        [FromBody] AddWorkspaceMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AddWorkspaceMemberCommand(
+            id,
+            request.UserId,
+            request.Role
+        );
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Removes a member from the workspace and all its boards
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="memberId">
+    /// The unique identifier of the user to be removed
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <response code="204">
+    /// No Content. Success, member removed successfully
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user lacks permissions
+    /// </response>
+    /// <response code="404">
+    /// Not Found. If the workspace or member does not exist
+    /// </response>
+    /// <response code="500">Internal Server Error</response>
+    [HttpDelete("{id:guid}/members/{memberId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveMember(
+        [FromRoute] Guid id,
+        [FromRoute] Guid memberId,
+        CancellationToken cancellationToken)
+    {
+        var command = new RemoveWorkspaceMemberCommand(id, memberId);
+
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Retrieves a list of workspaces where the current user 
+    /// is an Owner or Member (suitable for dropdowns)
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A list of workspaces sorted alphabetically by name
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the list of manageable workspaces
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated via Azure Entra ID
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpGet("UserWorkspaces")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<UserWorkspaceDto>>> GetUserWorkspaces(
+        CancellationToken cancellationToken)
+    {
+        var query = new GetWorkspacesForRoleManagementQuery();
+        var workspaces = await _mediator.Send(query, cancellationToken);
+
+        return Ok(workspaces);
+    }
+
+    /// <summary>
+    /// Retrieves all members of a specific workspace
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A list of workspace members
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the list of workspace members
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user is not a member of this workspace
+    /// </response>
+    [HttpGet("{id:guid}/members")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<WorkspaceMemberDto>>> GetWorkspaceMembers(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetWorkspaceMembersQuery(id);
+        var members = await _mediator.Send(query, cancellationToken);
+
+        return Ok(members);
+    }
+
+    /// <summary>
+    /// Searches for users by email who are not yet members of the workspace
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the workspace
+    /// </param>
+    /// <param name="searchTerm">
+    /// The email prefix or search term to filter users
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token
+    /// </param>
+    /// <returns>
+    /// A list of users matching the search term 
+    /// who can be added to the workspace
+    /// </returns>
+    /// <response code="200">
+    /// Success. Returns the list of assignable users
+    /// </response>
+    /// <response code="401">
+    /// Unauthorized. If the user is not authenticated
+    /// </response>
+    /// <response code="403">
+    /// Forbidden. If the user is not a member of this workspace
+    /// </response>
+    /// <response code="500">
+    /// Internal Server Error. If a database error occurs
+    /// </response>
+    [HttpGet("{id:guid}/assignable-users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IReadOnlyList<UserSearchDto>>> SearchAssignableUsers(
+        [FromRoute] Guid id,
+        [FromQuery] string searchTerm,
+        CancellationToken cancellationToken)
+    {
+        var query = new SearchWorkspaceAssignableUsersQuery(id, searchTerm);
+        var users = await _mediator.Send(query, cancellationToken);
+
+        return Ok(users);
     }
 }

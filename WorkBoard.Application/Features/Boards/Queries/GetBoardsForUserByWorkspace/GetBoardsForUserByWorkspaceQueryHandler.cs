@@ -6,14 +6,14 @@ using WorkBoard.Application.Common.Interfaces.Repositories;
 
 namespace WorkBoard.Application.Features.Boards.Queries.GetBoardsByWorkspace;
 
-public class GetBoardsByWorkspaceQueryHandler
-: IRequestHandler<GetBoardsByWorkspaceQuery, IReadOnlyList<BoardDto>>
+public class GetBoardsForUserByWorkspaceQueryHandler
+: IRequestHandler<GetBoardsForUserByWorkspaceQuery, IReadOnlyList<BoardDto>>
 {
     private readonly IBoardRepository _boardRepository;
     private readonly IWorkspaceMemberRepository _workspaceMemberRepository;
     private readonly IUserContext _userContext;
 
-    public GetBoardsByWorkspaceQueryHandler(
+    public GetBoardsForUserByWorkspaceQueryHandler(
         IBoardRepository boardRepository,
         IWorkspaceMemberRepository workspaceMemberRepository,
         IUserContext userContext)
@@ -24,7 +24,7 @@ public class GetBoardsByWorkspaceQueryHandler
     }
 
     public async Task<IReadOnlyList<BoardDto>> Handle(
-        GetBoardsByWorkspaceQuery request,
+        GetBoardsForUserByWorkspaceQuery request,
         CancellationToken cancellationToken)
     {
         var userId = _userContext.UserId;
@@ -46,7 +46,7 @@ public class GetBoardsByWorkspaceQueryHandler
                 "You do not have access to this workspace.");
         }
 
-        return await _boardRepository.GetByWorkspaceIdAsync(
+        return await _boardRepository.GetForUserByWorkspaceIdAsync(
             request.WorkspaceId,
             userId.Value,
             cancellationToken);

@@ -24,7 +24,7 @@ public class BoardRepository
     {
     }
 
-    public async Task<IReadOnlyList<BoardDto>> GetByWorkspaceIdAsync(
+    public async Task<IReadOnlyList<BoardDto>> GetForUserByWorkspaceIdAsync(
         Guid workspaceId,
         Guid userId,
         CancellationToken cancellationToken = default)
@@ -154,9 +154,11 @@ public class BoardRepository
             FROM 
                 Boards b
             JOIN 
-                Workspaces w ON b.WorkspaceId = w.WorkspaceId
+                Workspaces w 
+                ON b.WorkspaceId = w.WorkspaceId
             JOIN 
-                WorkspaceMembers wm ON b.WorkspaceId = wm.WorkspaceId
+                WorkspaceMembers wm 
+                ON b.WorkspaceId = wm.WorkspaceId
             WHERE 
                 wm.UserId = @UserId 
                 AND wm.UserRole IN (0, 1)

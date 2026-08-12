@@ -4,6 +4,7 @@ using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
@@ -47,6 +48,40 @@ public class WorkspaceRepository :
             new 
             { 
                 UserId = userId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var workspaces = await _connection.QueryAsync<UserWorkspaceDto>(command);
+
+        return workspaces.ToList().AsReadOnly();
+    }
+
+    public async Task<IReadOnlyList<UserWorkspaceDto>> GetWorkspacesForRoleManagementAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT 
+                w.WorkspaceId AS Id,
+                w.Name,
+                w.SubscriptionTier,
+                wm.UserRole
+            FROM 
+                Workspaces w
+            JOIN 
+                WorkspaceMembers wm 
+                ON w.WorkspaceId = wm.WorkspaceId
+            WHERE 
+                wm.UserId = @UserId
+            ORDER BY 
+                w.Name ASC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);

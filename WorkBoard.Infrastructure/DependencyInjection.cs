@@ -159,6 +159,7 @@ public static class DependencyInjection
         services.AddTransient<IBoardNotificationService, BoardNotificationService>();
         services.AddTransient<IArchivationNotificationService, ArchivationNotificationService>();
         services.AddTransient<IAppNotificationService, AppNotificationService>();
+        services.AddTransient<IWorkspaceNotificationService, WorkspaceNotificationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
 
         return services;

@@ -426,4 +426,56 @@ public class BoardNotificationService : IBoardNotificationService
                 data,
                 cancellationToken);
     }
+
+    public async Task SendMemberRoleUpdatedInMultipleBoardsAsync(
+        IEnumerable<Guid> boardIds,
+        Guid userId,
+        BoardRole newRole,
+        CancellationToken cancellationToken = default)
+    {
+        var groups = boardIds.Select(id => id.ToString()).ToList();
+
+        await _hubContext.Clients.Groups(groups)
+            .SendAsync(
+                BoardHubEvents.MemberRoleUpdated,
+                new
+                {
+                    UserId = userId,
+                    NewRole = newRole
+                },
+                cancellationToken);
+    }
+
+    public async Task SendMemberAddedToMultipleBoardsAsync(
+        IEnumerable<Guid> boardIds,
+        Guid userId,
+        BoardRole role,
+        CancellationToken cancellationToken = default)
+    {
+        var groups = boardIds.Select(id => id.ToString()).ToList();
+
+        await _hubContext.Clients.Groups(groups)
+            .SendAsync(
+                BoardHubEvents.MemberAdded,
+                new
+                {
+                    UserId = userId,
+                    Role = role
+                },
+                cancellationToken);
+    }
+
+    public async Task SendMemberRemovedFromMultipleBoardsAsync(
+        IEnumerable<Guid> boardIds,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        var groups = boardIds.Select(id => id.ToString()).ToList();
+
+        await _hubContext.Clients.Groups(groups)
+            .SendAsync(
+                BoardHubEvents.MemberRemoved,
+                userId,
+                cancellationToken);
+    }
 }

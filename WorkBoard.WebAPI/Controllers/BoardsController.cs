@@ -61,11 +61,11 @@ public class BoardsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IReadOnlyList<BoardDto>>> GetBoards(
+    public async Task<ActionResult<IReadOnlyList<BoardDto>>> GetBoardsForUser(
         Guid workspaceId,
         CancellationToken cancellationToken)
     {
-        var query = new GetBoardsByWorkspaceQuery(workspaceId);
+        var query = new GetBoardsForUserByWorkspaceQuery(workspaceId);
 
         var result = await _mediator.Send(query, cancellationToken);
 
