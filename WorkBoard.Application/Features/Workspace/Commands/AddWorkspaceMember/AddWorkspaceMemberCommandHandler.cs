@@ -1,7 +1,11 @@
 ﻿using AutoMapper;
 using MediatR;
+using WorkBoard.Application.Common.Constants;
+using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Common.Exceptions;
+using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
@@ -16,19 +20,25 @@ public class AddWorkspaceMemberCommandHandler
     private readonly IMapper _mapper;
     private readonly IBoardNotificationService _boardNotificationService;
     private readonly IWorkspaceNotificationService _workspaceNotificationService;
+    private readonly IBlobStorageService _blobStorageService;
+    private readonly IAppNotificationService _appNotificationService;
 
     public AddWorkspaceMemberCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IMapper mapper,
         IBoardNotificationService boardNotificationService,
-        IWorkspaceNotificationService workspaceNotificationService)
+        IWorkspaceNotificationService workspaceNotificationService,
+        IBlobStorageService blobStorageService,
+        IAppNotificationService appNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _mapper = mapper;
         _boardNotificationService = boardNotificationService;
         _workspaceNotificationService = workspaceNotificationService;
+        _blobStorageService = blobStorageService;
+        _appNotificationService = appNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -82,10 +92,35 @@ public class AddWorkspaceMemberCommandHandler
             throw;
         }
 
+        var targetUser = await uow.UserRepository.GetByIdAsync(
+            request.TargetUserId, 
+            cancellationToken);
+
+        string? avatarUrl = targetUser.AvatarUrl;
+        if (!string.IsNullOrWhiteSpace(avatarUrl))
+        {
+            avatarUrl = _blobStorageService.GetReadSasUrl(
+                avatarUrl, 
+                BlobContainers.Avatars);
+        }
+
+        var payload = new WorkspaceMemberAddedDto(
+            targetUser.Id,
+            targetUser.FullName,
+            targetUser.Email,
+            request.Role,
+            avatarUrl,
+            targetUser.AvatarColor,
+            InitialGenerator.Generate(targetUser.FullName)
+        );
+
         await _workspaceNotificationService.SendMemberAddedAsync(
             request.WorkspaceId,
-            request.TargetUserId,
-            request.Role,
+            payload,
+            cancellationToken);
+
+        await _appNotificationService.NotifyUserWorkspacesChangedAsync(
+            request.TargetUserId, 
             cancellationToken);
 
         if (affectedBoardIds.Any())

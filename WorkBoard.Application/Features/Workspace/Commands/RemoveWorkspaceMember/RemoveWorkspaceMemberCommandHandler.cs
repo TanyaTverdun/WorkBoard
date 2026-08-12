@@ -13,17 +13,20 @@ public class RemoveWorkspaceMemberCommandHandler
     private readonly IUserContext _userContext;
     private readonly IWorkspaceNotificationService _workspaceNotificationService;
     private readonly IBoardNotificationService _boardNotificationService;
+    private readonly IAppNotificationService _appNotificationService;
 
     public RemoveWorkspaceMemberCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IWorkspaceNotificationService workspaceNotificationService,
-        IBoardNotificationService boardNotificationService)
+        IBoardNotificationService boardNotificationService,
+        IAppNotificationService appNotificationService  )
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _workspaceNotificationService = workspaceNotificationService;
         _boardNotificationService = boardNotificationService;
+        _appNotificationService = appNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -96,6 +99,10 @@ public class RemoveWorkspaceMemberCommandHandler
                 request.TargetUserId,
                 cancellationToken);
         }
+
+        await _appNotificationService.NotifyUserWorkspacesChangedAsync(
+            request.TargetUserId,
+            cancellationToken);
 
         return Unit.Value;
     }
