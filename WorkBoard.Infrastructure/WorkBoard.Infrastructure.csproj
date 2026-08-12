@@ -7,21 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="AI\**" />
     <Compile Remove="Authentication\**" />
     <Compile Remove="BackgroundJobs\**" />
     <Compile Remove="FileStorage\**" />
     <Compile Remove="Messaging\**" />
     <Compile Remove="Payments\**" />
     <Compile Remove="Signaling\**" />
-    <EmbeddedResource Remove="AI\**" />
     <EmbeddedResource Remove="Authentication\**" />
     <EmbeddedResource Remove="BackgroundJobs\**" />
     <EmbeddedResource Remove="FileStorage\**" />
     <EmbeddedResource Remove="Messaging\**" />
     <EmbeddedResource Remove="Payments\**" />
     <EmbeddedResource Remove="Signaling\**" />
-    <None Remove="AI\**" />
     <None Remove="Authentication\**" />
     <None Remove="BackgroundJobs\**" />
     <None Remove="FileStorage\**" />
@@ -42,6 +39,11 @@
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.24" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.33.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.0" />
+    <PackageReference Include="Microsoft.KernelMemory.AI.AzureOpenAI" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.DocumentStorage.AzureBlobs" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.AzureAISearch" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.SemanticKernelPlugin" Version="0.98.250508.3" />
   </ItemGroup>
 
 </Project>

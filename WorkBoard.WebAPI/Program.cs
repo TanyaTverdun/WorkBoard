@@ -10,6 +10,7 @@ using WorkBoard.Infrastructure.SignalR.Hubs;
 using WorkBoard.Persistence;
 using WorkBoard.WebAPI;
 using WorkBoard.WebAPI.Constants;
+using WorkBoard.WebAPI.Extensions;
 using WorkBoard.WebAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -81,5 +82,7 @@ app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<ArchivationHub>("/hubs/archivation");
 app.MapHub<AppHub>("/hubs/app");
 app.MapHub<WorkspaceHub>("/hubs/workspace");
+
+await app.SeedKnowledgeBaseAsync();
 
 app.Run();

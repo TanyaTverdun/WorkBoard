@@ -17,6 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageReference Include="Microsoft.Identity.Web" Version="4.10.0" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.98.250508.3" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
   </ItemGroup>
@@ -26,6 +27,18 @@
     <ProjectReference Include="..\WorkBoard.Database\WorkBoard.Database.csproj" />
     <ProjectReference Include="..\WorkBoard.Infrastructure\WorkBoard.Infrastructure.csproj" />
     <ProjectReference Include="..\WorkBoard.Persistence\WorkBoard.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\workboard-kb-admin.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\workboard-kb-general.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\workboard-kb.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
