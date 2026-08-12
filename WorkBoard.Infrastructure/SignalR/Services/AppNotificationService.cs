@@ -21,4 +21,13 @@ public class AppNotificationService : IAppNotificationService
             AppHubEvents.SidebarBoardChanged,
             cancellationToken);
     }
+
+    public async Task NotifyUserWorkspacesChangedAsync(
+        Guid targetUserId,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.All.SendAsync(
+            AppHubEvents.WorkspacesListUpdated, 
+            cancellationToken);
+    }
 }
