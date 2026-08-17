@@ -12,9 +12,6 @@ public class Workspace : BaseEntity<Guid>
 
     public required string Name { get; set; }
 
-    public SubscriptionTier SubscriptionTier { get; set; } = 
-        SubscriptionTier.Free;
-
     public DateTime CreatedAt { get; set; }
     public Guid CreatedBy { get; set; }
 
