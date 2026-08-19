@@ -12,15 +12,18 @@ public class RemoveBoardMemberCommandHandler
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
     private readonly IBoardNotificationService _boardNotificationService;
+    private readonly IAppNotificationService _appNotificationService;
 
     public RemoveBoardMemberCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
-        IBoardNotificationService boardNotificationService  )
+        IBoardNotificationService boardNotificationService,
+        IAppNotificationService appNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _boardNotificationService = boardNotificationService;
+        _appNotificationService = appNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -78,6 +81,9 @@ public class RemoveBoardMemberCommandHandler
         await _boardNotificationService.SendMemberRemovedAsync(
             request.BoardId, 
             request.TargetUserId);
+
+        await _appNotificationService.SendSidebarBoardStatusChangedAsync(
+            cancellationToken);
 
         return Unit.Value;
     }

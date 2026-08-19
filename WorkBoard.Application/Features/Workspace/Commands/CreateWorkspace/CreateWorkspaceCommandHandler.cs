@@ -34,7 +34,6 @@ public class CreateWorkspaceCommandHandler :
         {
             Id = workspaceId,
             Name = request.Name,
-            SubscriptionTier = SubscriptionTier.Free,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = currentUserId
         };

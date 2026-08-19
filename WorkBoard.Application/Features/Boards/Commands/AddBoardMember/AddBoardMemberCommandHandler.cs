@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 using WorkBoard.Domain.Enums;
 
@@ -11,13 +12,16 @@ public class AddBoardMemberCommandHandler
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IUserContext _userContext;
+    private readonly IAppNotificationService _appNotificationService;
 
     public AddBoardMemberCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
-        IUserContext userContext)
+        IUserContext userContext,
+        IAppNotificationService appNotificationService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
+        _appNotificationService = appNotificationService;
     }
 
     public async Task<Unit> Handle(
@@ -59,6 +63,8 @@ public class AddBoardMemberCommandHandler
                 $"User {request.TargetUserId} is already a member of this board.");
         }
 
+        bool wasAddedToWorkspace = false;
+
         try
         {
             var isTargetInWorkspace = await uow.WorkspaceMemberRepository.IsMemberAsync(
@@ -75,9 +81,11 @@ public class AddBoardMemberCommandHandler
                     UserRole = WorkspaceRole.Observer
                 };
 
-                await uow.WorkspaceMemberRepository.AddMemberAsync(
+                await uow.WorkspaceMemberRepository.AddMemberOnlyToWorkspaceAsync(
                     newWorkspaceMember,
                     cancellationToken);
+
+                wasAddedToWorkspace = true;
             }
 
             await uow.BoardMemberRepository.AddMemberAsync(
@@ -93,6 +101,16 @@ public class AddBoardMemberCommandHandler
             uow.Rollback();
             throw;
         }
+
+        if (wasAddedToWorkspace)
+        {
+            await _appNotificationService.NotifyUserWorkspacesChangedAsync(
+                request.TargetUserId,
+                cancellationToken);
+        }
+
+        await _appNotificationService.SendSidebarBoardStatusChangedAsync(
+            cancellationToken);
 
         return Unit.Value;
     }
