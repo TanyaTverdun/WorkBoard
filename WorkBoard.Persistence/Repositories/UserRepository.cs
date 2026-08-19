@@ -4,6 +4,7 @@ using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
@@ -139,6 +140,65 @@ public class UserRepository : GenericRepository<User, Guid>, IUserRepository
             {
                 UserId = userId,
                 AvatarUrl = avatarUrl
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
+    }
+
+    public async Task<User?> GetByStripeSubscriptionIdAsync(
+        string stripeSubscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT
+                UserId AS Id,
+                FullName,
+                Email,
+                AvatarUrl,
+                AvatarColor,
+                SubscriptionTier,
+                StripeSubscriptionId
+            FROM 
+                Users
+            WHERE 
+                StripeSubscriptionId = @StripeSubscriptionId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                StripeSubscriptionId = stripeSubscriptionId
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryFirstOrDefaultAsync<User>(command);
+    }
+
+    public async Task<int> UpdateSubscriptionAsync(
+        Guid userId,
+        SubscriptionTier tier,
+        string? stripeSubscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            UPDATE 
+                Users
+            SET 
+                SubscriptionTier = @SubscriptionTier,
+                StripeSubscriptionId = @StripeSubscriptionId
+            WHERE 
+                UserId = @UserId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                SubscriptionTier = tier,
+                StripeSubscriptionId = stripeSubscriptionId
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
