@@ -47,8 +47,8 @@ public static class DependencyInjection
                 "Azure SignalR Connection String is missing in appsettings.json");
         }
 
-        services.AddSignalR();
-               // .AddAzureSignalR(azureOptions.SignalR.ConnectionString);
+        services.AddSignalR()
+                .AddAzureSignalR(azureOptions.SignalR.ConnectionString);
 
         if (string.IsNullOrEmpty(azureOptions.BlobStorage?.ConnectionString))
         {
