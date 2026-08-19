@@ -12,6 +12,10 @@ public interface IWorkspaceMemberRepository :
         WorkspaceMember member, 
         CancellationToken cancellationToken = default);
 
+    Task<IEnumerable<Guid>> AddMemberOnlyToWorkspaceAsync(
+        WorkspaceMember member,
+        CancellationToken cancellationToken = default);
+
     Task<bool> IsMemberAsync(
         Guid workspaceId,
         Guid userId,
@@ -40,5 +44,9 @@ public interface IWorkspaceMemberRepository :
     Task<IReadOnlyList<UserSearchDto>> SearchWorkspaceAssignableUsersAsync(
         Guid workspaceId,
         string searchTerm,
+        CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Guid>> GetMemberUserIdsByOwnerAsync(
+        Guid ownerId,
         CancellationToken cancellationToken = default);
 }
