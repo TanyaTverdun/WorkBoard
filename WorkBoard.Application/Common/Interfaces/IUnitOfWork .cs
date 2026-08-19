@@ -19,6 +19,7 @@ public interface IUnitOfWork : IDisposable
     ICommentRepository CommentRepository { get; }
     IAttachmentRepository AttachmentRepository { get; }
     IActivityLogRepository ActivityLogRepository { get; }
+    ISubscriptionRepository SubscriptionRepository { get; }
 
     void Commit();
     void Rollback();
