@@ -5,14 +5,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
+using Stripe;
 using WorkBoard.Application.Common.Constants;
 using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
+using WorkBoard.Application.Common.Interfaces.Stripe;
 using WorkBoard.Database.Options;
 using WorkBoard.Infrastructure.AI.Plugins;
 using WorkBoard.Infrastructure.BlobStorage;
 using WorkBoard.Infrastructure.Options;
 using WorkBoard.Infrastructure.SignalR.Services;
+using WorkBoard.Infrastructure.Stripe;
 using WorkBoard.WebAPI.Constants;
 
 namespace WorkBoard.Infrastructure;
@@ -44,8 +47,8 @@ public static class DependencyInjection
                 "Azure SignalR Connection String is missing in appsettings.json");
         }
 
-        services.AddSignalR()
-                .AddAzureSignalR(azureOptions.SignalR.ConnectionString);
+        services.AddSignalR();
+               // .AddAzureSignalR(azureOptions.SignalR.ConnectionString);
 
         if (string.IsNullOrEmpty(azureOptions.BlobStorage?.ConnectionString))
         {
@@ -156,11 +159,29 @@ public static class DependencyInjection
             return builder.Build();
         });
 
+        var stripeOptions = configuration
+            .GetSection(StripeOptions.SectionName)
+            .Get<StripeOptions>()
+                ?? throw new InvalidOperationException(
+                    $"Section '{StripeOptions.SectionName}' is missing in appsettings.json");
+
+        if (string.IsNullOrEmpty(stripeOptions.SecretKey))
+        {
+            throw new InvalidOperationException(
+                "Stripe SecretKey is missing in appsettings.json");
+        }
+
+        StripeConfiguration.ApiKey = stripeOptions.SecretKey;
+
+        services.Configure<StripeOptions>(
+            configuration.GetSection(StripeOptions.SectionName));
+
         services.AddTransient<IBoardNotificationService, BoardNotificationService>();
         services.AddTransient<IArchivationNotificationService, ArchivationNotificationService>();
         services.AddTransient<IAppNotificationService, AppNotificationService>();
         services.AddTransient<IWorkspaceNotificationService, WorkspaceNotificationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
+        services.AddScoped<IStripeService, StripeService>();
 
         return services;
     }
