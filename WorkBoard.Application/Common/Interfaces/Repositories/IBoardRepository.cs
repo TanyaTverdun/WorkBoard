@@ -31,4 +31,9 @@ public interface IBoardRepository : IGenericRepository<Board, Guid>
     Task<IReadOnlyList<BoardArchivationDto>> GetBoardsForArchivationAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BoardSearchResultDto>> SearchBoardsForUserAsync(
+        Guid userId,
+        string searchTerm,
+        CancellationToken cancellationToken = default);
 }
