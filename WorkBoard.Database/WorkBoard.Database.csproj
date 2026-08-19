@@ -25,7 +25,6 @@
     <None Remove="Scripts\0015_Create_ActivityLogs_Table.sql" />
     <None Remove="Scripts\0016_Add_Avatar_Color_To_Users_Table.sql" />
     <None Remove="Scripts\0017_Add_SubscriptionTier_To_Users_table.sql" />
-    <None Remove="Scripts\0018_Remove_SubscriptionTier_From_Workspaces_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,7 +45,7 @@
     <EmbeddedResource Include="Scripts\0015_Create_ActivityLogs_Table.sql" />
     <EmbeddedResource Include="Scripts\0016_Add_Avatar_Color_To_Users_Table.sql" />
     <EmbeddedResource Include="Scripts\0017_Add_SubscriptionTier_To_Users_table.sql" />
-    <EmbeddedResource Include="Scripts\0018_Remove_SubscriptionTier_From_Workspaces_Table.sql" />
+    <EmbeddedResource Include="Scripts\0018_Delete_SubscriptionTier_From_Workspaces_Table.sql" />
   </ItemGroup>
 
   <ItemGroup>
