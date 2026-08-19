@@ -10,6 +10,9 @@ public class SubscriptionRepository : ISubscriptionRepository
     private readonly IDbConnection _connection;
     private readonly IDbTransaction _transaction;
 
+    private const string EnforceFreePlanLimits = "sp_EnforceFreePlanLimits";
+    private const string UserId = "@UserId";
+
     internal SubscriptionRepository(
         IDbConnection connection, 
         IDbTransaction transaction)
@@ -22,164 +25,26 @@ public class SubscriptionRepository : ISubscriptionRepository
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-            SELECT 
-                WorkspaceId, 
-                ROW_NUMBER() OVER(
-                    ORDER BY 
-                        CreatedAt ASC
-                ) AS rnk
-            INTO 
-                #RankedWorkspaces
-            FROM 
-                Workspaces 
-            WHERE 
-                CreatedBy = @UserId;
+        var parameters = new DynamicParameters();
+        parameters.Add(
+            UserId, 
+            userId, 
+            DbType.Guid);
 
-            SELECT 
-                b.BoardId, 
-                b.WorkspaceId, 
-                ROW_NUMBER() OVER(
-                    PARTITION BY 
-                        b.WorkspaceId 
-                    ORDER BY 
-                        b.CreatedAt ASC
-                ) AS rnk
-            INTO 
-                #RankedBoards
-            FROM 
-                Boards b
-            INNER JOIN 
-                Workspaces w 
-                ON b.WorkspaceId = w.WorkspaceId
-            WHERE 
-                w.CreatedBy = @UserId;
+        var command = new CommandDefinition(
+            commandText: EnforceFreePlanLimits,
+            parameters: parameters,
+            transaction: _transaction,
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
-            SELECT 
-                BoardId 
-            INTO 
-                #DoomedBoards
-            FROM 
-                #RankedBoards
-            WHERE 
-                WorkspaceId IN (
-                    SELECT 
-                        WorkspaceId 
-                    FROM 
-                        #RankedWorkspaces WHERE rnk > 1
-                )
-                OR (
-                WorkspaceId IN (
-                    SELECT 
-                        WorkspaceId 
-                    FROM 
-                        #RankedWorkspaces 
-                    WHERE 
-                        rnk = 1
-                ) 
-                AND 
-                    rnk > 5
-            );
-
-            SELECT 
-                BoardId 
-            INTO 
-                #SurvivingBoards
-            FROM 
-                #RankedBoards
-            WHERE 
-                WorkspaceId IN (
-                    SELECT 
-                        WorkspaceId 
-                    FROM 
-                        #RankedWorkspaces 
-                    WHERE 
-                        rnk = 1
-                )
-                AND 
-                    rnk <= 5;
-
-            WITH RankedSections AS (
-                SELECT 
-                    s.SectionId, 
-                    s.BoardId, 
-                    ROW_NUMBER() OVER(PARTITION BY s.BoardId ORDER BY s.CreatedAt ASC) AS rnk
-                FROM 
-                    Sections s
-                INNER JOIN 
-                    #SurvivingBoards sb 
-                    ON s.BoardId = sb.BoardId
-            )
-            SELECT 
-                BoardId, 
-                SectionId 
-            INTO 
-                #DoomedSections
-            FROM 
-                RankedSections
-            WHERE 
-                rnk > 10;
-
-            SELECT 
-                BoardId 
-            FROM 
-                #DoomedBoards;
-            SELECT 
-                BoardId, 
-                SectionId 
-            FROM 
-                #DoomedSections;
-
-            DELETE FROM 
-                Sections 
-            WHERE 
-                SectionId IN (
-                    SELECT 
-                        SectionId 
-                    FROM 
-                        #DoomedSections
-                );
-
-            DELETE FROM 
-                Boards 
-            WHERE 
-                BoardId IN (
-                    SELECT 
-                        BoardId 
-                    FROM 
-                        #DoomedBoards
-                );
-
-            DELETE FROM 
-                Workspaces 
-            WHERE 
-                WorkspaceId IN (
-                    SELECT 
-                        WorkspaceId 
-                    FROM 
-                        #RankedWorkspaces 
-                    WHERE 
-                        rnk > 1
-                );
-
-            DROP TABLE #RankedWorkspaces;
-            DROP TABLE #RankedBoards;
-            DROP TABLE #DoomedBoards;
-            DROP TABLE #SurvivingBoards;
-            DROP TABLE #DoomedSections;
-        ";
-
-        using var multi = await _connection.QueryMultipleAsync(
-            sql,
-            new 
-            { 
-                UserId = userId 
-            },
-            transaction: _transaction);
+        using var multi = await _connection.QueryMultipleAsync(command);
 
         var deletedBoardIds = (await multi.ReadAsync<Guid>()).ToList();
         var deletedSections = (await multi.ReadAsync<DeletedSectionInfo>()).ToList();
 
-        return new EnforceFreePlanLimitsResult(deletedBoardIds, deletedSections);
+        return new EnforceFreePlanLimitsResult(
+            deletedBoardIds, 
+            deletedSections);
     }
 }
