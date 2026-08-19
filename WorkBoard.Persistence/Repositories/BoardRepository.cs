@@ -178,4 +178,54 @@ public class BoardRepository
 
         return boards.ToList().AsReadOnly();
     }
+
+    public async Task<IReadOnlyList<BoardSearchResultDto>> SearchBoardsForUserAsync(
+        Guid userId,
+        string searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT
+                b.BoardId,
+                b.Name AS BoardName,
+                w.WorkspaceId,
+                w.Name AS WorkspaceName,
+                wm.UserRole AS Role,
+                u.SubscriptionTier
+            FROM 
+                Boards b
+            JOIN 
+                Workspaces w 
+                ON b.WorkspaceId = w.WorkspaceId
+            JOIN 
+                BoardMembers bm 
+                ON b.BoardId = bm.BoardId
+            JOIN 
+                WorkspaceMembers wm 
+                ON w.WorkspaceId = wm.WorkspaceId AND 
+                wm.UserId = @UserId
+            JOIN 
+                Users u 
+                ON u.UserId = w.CreatedBy
+            WHERE 
+                bm.UserId = @UserId
+                AND b.IsArchived = 0
+                AND b.Name LIKE @SearchTerm
+            ORDER BY 
+                b.CreatedAt DESC;";
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                UserId = userId,
+                SearchTerm = $"%{searchTerm}%"
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        var boards = await _connection.QueryAsync<BoardSearchResultDto>(command);
+
+        return boards.ToList().AsReadOnly();
+    }
 }
