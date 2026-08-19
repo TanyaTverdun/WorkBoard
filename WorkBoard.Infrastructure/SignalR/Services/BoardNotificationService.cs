@@ -478,4 +478,15 @@ public class BoardNotificationService : IBoardNotificationService
                 userId,
                 cancellationToken);
     }
+
+    public async Task SendBoardDeletedAsync(
+        Guid boardId,
+        CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients.Group(boardId.ToString())
+            .SendAsync(
+                BoardHubEvents.BoardDeleted,
+                boardId,
+                cancellationToken);
+    }
 }

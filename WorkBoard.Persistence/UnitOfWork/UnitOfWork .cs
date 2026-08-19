@@ -25,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
     private ICommentRepository? _commentRepository;
     private IAttachmentRepository? _attachmentRepository;
     private IActivityLogRepository? _activityLogRepository;
+    private ISubscriptionRepository? _subscriptionRepository;
 
     public UnitOfWork(IDbConnectionFactory connectionFactory)
     {
@@ -110,6 +111,11 @@ public class UnitOfWork : IUnitOfWork
 
     public IActivityLogRepository ActivityLogRepository =>
         _activityLogRepository ??= new ActivityLogRepository(
+            _sqlConnection,
+            _transaction);
+
+    public ISubscriptionRepository SubscriptionRepository =>
+        _subscriptionRepository ??= new SubscriptionRepository(
             _sqlConnection,
             _transaction);
 

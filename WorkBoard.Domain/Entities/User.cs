@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using WorkBoard.Domain.Common;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Domain.Entities;
 
@@ -14,4 +15,7 @@ public class User : BaseEntity<Guid>
     public required string Email { get; set; }
     public string? AvatarUrl {get; set;}
     public string? AvatarColor { get; set; }
+    public SubscriptionTier SubscriptionTier { get; set; } = 
+        SubscriptionTier.Free;
+    public string? StripeSubscriptionId { get; set; }
 }

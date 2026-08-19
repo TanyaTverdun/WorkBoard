@@ -6,6 +6,7 @@ using WorkBoard.Application.Common.Dtos.Cards;
 using WorkBoard.Application.Common.Exceptions;
 using WorkBoard.Application.Common.Helpers;
 using WorkBoard.Application.Common.Interfaces;
+using WorkBoard.Application.Common.Interfaces.BlobStorage;
 using WorkBoard.Application.Common.Interfaces.Notification;
 using WorkBoard.Domain.Entities;
 
@@ -18,17 +19,20 @@ public class AddCardAssigneeCommandHandler
     private readonly IUserContext _userContext;
     private readonly IMapper _mapper;
     private readonly IBoardNotificationService _notificationService;
+    private readonly IBlobStorageService _blobStorageService;
 
     public AddCardAssigneeCommandHandler(
         IUnitOfWorkFactory unitOfWorkFactory,
         IUserContext userContext,
         IMapper mapper,
-        IBoardNotificationService notificationService)
+        IBoardNotificationService notificationService,
+        IBlobStorageService blobStorageService)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _userContext = userContext;
         _mapper = mapper;
         _notificationService = notificationService;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<Unit> Handle(
@@ -133,12 +137,20 @@ public class AddCardAssigneeCommandHandler
             logDto,
             cancellationToken);
 
+        var avatarUrl = user.AvatarUrl;
+        if (!string.IsNullOrWhiteSpace(avatarUrl))
+        {
+            avatarUrl = _blobStorageService.GetReadSasUrl(
+                avatarUrl,
+                BlobContainers.Avatars);
+        }
+
         var assigneeDto = new CardAssigneeDto
         {
             UserId = user.Id,
             FullName = user.FullName ?? "Unknown",
             Email = user.Email,
-            AvatarUrl = user.AvatarUrl,
+            AvatarUrl = avatarUrl,
             AvatarColor = user.AvatarColor,
             Initials = InitialGenerator.Generate(user.FullName)
         };

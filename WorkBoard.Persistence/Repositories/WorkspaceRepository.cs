@@ -4,7 +4,6 @@ using WorkBoard.Application.Common.Dtos.Workspaces;
 using WorkBoard.Application.Common.Interfaces;
 using WorkBoard.Application.Common.Interfaces.Repositories;
 using WorkBoard.Domain.Entities;
-using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Persistence.Repositories;
 
@@ -24,20 +23,23 @@ public class WorkspaceRepository :
     }
 
     public async Task<IReadOnlyList<UserWorkspaceDto>> GetByUserIdAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         const string sql = @"
             SELECT 
                 w.WorkspaceId AS Id,
                 w.Name,
-                w.SubscriptionTier,
+                u.SubscriptionTier,
                 wm.UserRole
             FROM 
                 Workspaces w
             JOIN 
                 WorkspaceMembers wm 
                 ON w.WorkspaceId = wm.WorkspaceId
+            JOIN 
+                Users u 
+                ON w.CreatedBy = u.UserId
             WHERE 
                 wm.UserId = @UserId
             ORDER BY 
@@ -45,9 +47,9 @@ public class WorkspaceRepository :
 
         var command = new CommandDefinition(
             sql,
-            new 
-            { 
-                UserId = userId 
+            new
+            {
+                UserId = userId
             },
             transaction: _transaction,
             cancellationToken: cancellationToken);
@@ -65,13 +67,16 @@ public class WorkspaceRepository :
             SELECT 
                 w.WorkspaceId AS Id,
                 w.Name,
-                w.SubscriptionTier,
+                u.SubscriptionTier,
                 wm.UserRole
             FROM 
                 Workspaces w
             JOIN 
-                WorkspaceMembers wm 
-                ON w.WorkspaceId = wm.WorkspaceId
+                WorkspaceMembers wm ON 
+                w.WorkspaceId = wm.WorkspaceId
+            JOIN 
+                Users u ON 
+                w.CreatedBy = u.UserId
             WHERE 
                 wm.UserId = @UserId
             ORDER BY 

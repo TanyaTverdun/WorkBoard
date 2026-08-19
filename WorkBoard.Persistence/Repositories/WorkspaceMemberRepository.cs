@@ -66,7 +66,30 @@ public class WorkspaceMemberRepository :
 
         return await _connection.QueryAsync<Guid>(command);
     }
-    
+
+    public async Task<IEnumerable<Guid>> AddMemberOnlyToWorkspaceAsync(
+        WorkspaceMember member,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            INSERT INTO WorkspaceMembers (
+                UserId, 
+                WorkspaceId, 
+                UserRole)
+            VALUES (
+                @UserId, 
+                @WorkspaceId, 
+                @UserRole);";
+
+        var command = new CommandDefinition(
+            sql,
+            member,
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
+    }
+
     public async Task<bool> IsMemberAsync(
         Guid workspaceId,
         Guid userId,
@@ -313,5 +336,32 @@ public class WorkspaceMemberRepository :
         var users = await _connection.QueryAsync<UserSearchDto>(command);
 
         return users.ToList().AsReadOnly();
+    }
+
+    public async Task<IEnumerable<Guid>> GetMemberUserIdsByOwnerAsync(
+        Guid ownerId,
+        CancellationToken cancellationToken = default)
+    {
+        const string sql = @"
+            SELECT DISTINCT 
+                wm.UserId
+            FROM 
+                WorkspaceMembers wm
+            INNER JOIN 
+                Workspaces w ON 
+                wm.WorkspaceId = w.WorkspaceId
+            WHERE 
+                w.CreatedBy = @OwnerId;";
+
+        var command = new CommandDefinition(
+            sql,
+            new 
+            { 
+                OwnerId = ownerId 
+            },
+            transaction: _transaction,
+            cancellationToken: cancellationToken);
+
+        return await _connection.QueryAsync<Guid>(command);
     }
 }

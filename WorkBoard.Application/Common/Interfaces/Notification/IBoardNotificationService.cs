@@ -193,4 +193,8 @@ public interface IBoardNotificationService
         IEnumerable<Guid> boardIds,
         Guid userId,
         CancellationToken cancellationToken = default);
+
+    Task SendBoardDeletedAsync(
+        Guid boardId,
+        CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,6 @@
 ﻿using WorkBoard.Application.Common.Dtos.Users;
 using WorkBoard.Domain.Entities;
+using WorkBoard.Domain.Enums;
 
 namespace WorkBoard.Application.Common.Interfaces.Repositories;
 
@@ -23,5 +24,15 @@ public interface IUserRepository : IGenericRepository<User, Guid>
     Task<int> UpdateAvatarUrlAsync(
         Guid userId,
         string avatarUrl,
+        CancellationToken cancellationToken = default);
+
+    Task<User?> GetByStripeSubscriptionIdAsync(
+        string stripeSubscriptionId,
+        CancellationToken cancellationToken = default);
+
+    Task<int> UpdateSubscriptionAsync(
+        Guid userId,
+        SubscriptionTier tier,
+        string? stripeSubscriptionId,
         CancellationToken cancellationToken = default);
 }
